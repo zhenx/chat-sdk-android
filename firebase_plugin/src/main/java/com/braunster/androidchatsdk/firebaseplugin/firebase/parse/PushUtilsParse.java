@@ -20,7 +20,7 @@ import java.util.Collection;
 import static com.braunster.chatsdk.dao.entities.BMessageEntity.Type.IMAGE;
 import static com.braunster.chatsdk.dao.entities.BMessageEntity.Type.LOCATION;
 
-public class PushUtils {
+public class PushUtilsParse {
 
     static final String ACTION = "action";
     static final String ALERT = "alert";
@@ -57,7 +57,7 @@ public class PushUtils {
         JSONObject data = new JSONObject();
         try {
 
-            data.put(ACTION, ChatSDKReceiver.ACTION_MESSAGE);
+            data.put(ACTION, ChatSDKReceiverParse.ACTION_MESSAGE);
 
             data.put(CONTENT, text);
             data.put(MESSAGE_ENTITY_ID, message.getEntityID());
@@ -114,7 +114,7 @@ public class PushUtils {
         JSONObject data = new JSONObject();
         try {
 
-            data.put(ACTION, ChatSDKReceiver.ACTION_FOLLOWER_ADDED);
+            data.put(ACTION, ChatSDKReceiverParse.ACTION_FOLLOWER_ADDED);
             data.put(CONTENT, content);
         } catch (JSONException e) {
             e.printStackTrace();

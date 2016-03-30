@@ -10,11 +10,13 @@ package com.braunster.androidchatsdk.firebaseplugin.firebase;
 import android.content.Context;
 import android.graphics.Bitmap;
 
+import com.backendless.Backendless;
+import com.backendless.async.callback.AsyncCallback;
+import com.backendless.exceptions.BackendlessFault;
 import com.braunster.androidchatsdk.firebaseplugin.R;
-import com.braunster.androidchatsdk.firebaseplugin.firebase.parse.ParseUtils;
-import com.braunster.androidchatsdk.firebaseplugin.firebase.parse.PushUtils;
+import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.BackendlessUtils;
+import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.PushUtils;
 import com.braunster.chatsdk.Utils.Debug;
-import com.braunster.chatsdk.Utils.helper.ChatSDKUiHelper;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
@@ -31,8 +33,6 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.parse.Parse;
-import com.parse.ParseInstallation;
 import com.parse.PushService;
 
 import org.jdeferred.Deferred;
@@ -71,9 +71,11 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         setEventManager(eventManager);
 
         // Parse init
-        Parse.initialize(context, context.getString(R.string.parse_app_id), context.getString(R.string.parse_client_key));
-        ParseInstallation.getCurrentInstallation().saveInBackground();
+        /*Parse.initialize(context, context.getString(R.string.parse_app_id), context.getString(R.string.parse_client_key));
+        ParseInstallation.getCurrentInstallation().saveInBackground();*/
 
+        String appVersion = "v1";
+        Backendless.initApp(context, context.getString(R.string.backendless_app_id), context.getString(R.string.backendless_secret_key), appVersion);
     }
 
 
@@ -266,22 +268,22 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
 
     @Override
     public Promise<String[], BError, SaveImageProgress> saveBMessageWithImage(BMessage message) {
-        return ParseUtils.saveBMessageWithImage(message);
+        return BackendlessUtils.saveBMessageWithImage(message);
     }
 
     @Override
     public Promise<String[], BError, SaveImageProgress> saveImageWithThumbnail(String path, int thumbnailSize) {
-        return ParseUtils.saveImageFileToParseWithThumbnail(path, thumbnailSize);
+        return BackendlessUtils.saveImageFileToBackendlessWithThumbnail(path, thumbnailSize);
     }
 
     @Override
     public Promise<String, BError, SaveImageProgress> saveImage(String path) {
-        return ParseUtils.saveImageToParse(path);
+        return BackendlessUtils.saveImageToBackendless(path);
     }
 
     @Override
     public Promise<String, BError, SaveImageProgress> saveImage(Bitmap b, int size) {
-        return ParseUtils.saveImageToParse(b, size);
+        return BackendlessUtils.saveImageToBackendless(b, size);
     }
 
     @Override
@@ -292,7 +294,10 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
     
     
     protected void pushForMessage(final BMessage message){
-        if (!parseEnabled())
+        /*if (!parseEnabled())
+            return;*/
+
+        if (!backendlessEnabled())
             return;
 
         if (DEBUG) Timber.v("pushForMessage");
@@ -328,12 +333,13 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
                     BUser currentUser = currentUserModel();
                     List<BUser> users = new ArrayList<BUser>();
 
-                    for (BUser user : message.getBThreadOwner().getUsers())
-                        if (!user.equals(currentUser))
+                    for (BUser user : message.getBThreadOwner().getUsers()) {
+                        if (!user.equals(currentUser)) {
+                            Timber.v(user.getEntityID() + ", " + user.getOnline().toString());
                             if (user.getOnline() == null || !user.getOnline())
-                            {
                                 users.add(user);
-                            }
+                        }
+                    }
 
                     pushToUsers(message, users);
                 }
@@ -349,11 +355,14 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
     protected void pushToUsers(BMessage message, List<BUser> users){
         if (DEBUG) Timber.v("pushToUsers");
 
-        if (!parseEnabled() || users.size() == 0)
+        /*if (!parseEnabled() || users.size() == 0)
+            return;*/
+
+        if (!backendlessEnabled() || users.size() == 0)
             return;
 
         // We're identifying each user using push channels. This means that
-        // when a user signs up, they register with parse on a particular
+        // when a user signs up, they register with backendless on a particular
         // channel. In this case user_[user id] this means that we can
         // send a push to a specific user if we know their user id.
         List<String> channels = new ArrayList<String>();
@@ -363,11 +372,27 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         PushUtils.sendMessage(message, channels);
     }
 
-    public void subscribeToPushChannel(String channel){
-        if (!parseEnabled())
+    public void subscribeToPushChannel(final String channel){
+        /*if (!parseEnabled())
+            return;*/
+
+        if (!backendlessEnabled())
             return;
 
-        try {
+        Backendless.Messaging.registerDevice(context.getString(R.string.google_project_number), channel, new AsyncCallback<Void>() {
+            @Override
+            public void handleResponse(Void response) {
+                if(DEBUG) Timber.v("Device has been subscribed to channel " + channel);
+            }
+
+            @Override
+            public void handleFault(BackendlessFault fault) {
+                if(DEBUG) Timber.v("Device subscription failed. " + fault.getMessage());
+            }
+        });
+
+
+        /*try {
             PushService.subscribe(context, channel, ChatSDKUiHelper.getInstance().mainActivity);
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
@@ -376,14 +401,21 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
                 PushService.subscribe(context, channel.replace("%3A", "_"), ChatSDKUiHelper.getInstance().mainActivity);
             else if (channel.contains("%253A"))
                 PushService.subscribe(context, channel.replace("%253A", "_"), ChatSDKUiHelper.getInstance().mainActivity);
-        }
+        }*/
     }
 
     public void unsubscribeToPushChannel(String channel){
-        if (!parseEnabled())
+        /*if (!parseEnabled())
+            return;*/
+
+        if (!backendlessEnabled())
             return;
 
-        PushService.unsubscribe(context, channel);
+        // TODO: unsubscribe from push channel backendless
+        // http://support.backendless.com/topic/push-notification-unregister-from-a-specific-channel
+        Backendless.Messaging.unregisterDevice();
+
+        // PushService.unsubscribe(context, channel);
     }
 
 

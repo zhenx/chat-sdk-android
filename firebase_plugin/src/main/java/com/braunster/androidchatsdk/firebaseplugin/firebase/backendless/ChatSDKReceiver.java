@@ -5,7 +5,7 @@
  * Last Modification at: 3/12/15 4:35 PM
  */
 
-package com.braunster.androidchatsdk.firebaseplugin.firebase.parse;
+package com.braunster.androidchatsdk.firebaseplugin.firebase.backendless;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -37,7 +37,7 @@ import timber.log.Timber;
 
 /**
  *
- * The receiver is the sole object to handle push notification from parse server.
+ * The receiver is the sole object to handle push notification from backendless server.
  *
  * The receiver will only notify for the currentUserModel() incoming messages any message for other user will be <b>ignored</b>.
  * This behavior is due to multiple connection from the same phone.
@@ -60,7 +60,7 @@ public class ChatSDKReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(final Context context, Intent intent) {
-
+        Timber.v("receiver on receive");
         if (!BNetworkManager.preferences.getBoolean(BDefines.Prefs.PushEnabled, BNetworkManager.PushEnabledDefaultValue))
             return;
 
@@ -84,6 +84,7 @@ public class ChatSDKReceiver extends BroadcastReceiver {
     
     @SuppressWarnings("all")// For supressing the BMessasge setType(int type) warning.
     private void createMessageNotification(final Context context, Intent intent, String channel){
+        Timber.v("receiver create message notification");
         try {
             if (DEBUG) Timber.v("onReceive");
 
@@ -221,7 +222,7 @@ public class ChatSDKReceiver extends BroadcastReceiver {
     }
     
     private void postMessageNotification(Context context, JSONObject json, BThread thread, BMessage message, boolean messageIsValid){
-
+        Timber.v("receiver postmessage notification");
         if (DEBUG) Timber.v("postMessageNotification: messageIsValid: %s", messageIsValid);
         
         Intent resultIntent;
@@ -271,6 +272,7 @@ public class ChatSDKReceiver extends BroadcastReceiver {
 
 
     private void createFollowerNotification(Context context, Intent intent){
+        Timber.v("receiver create follower notification");
         final JSONObject json;
         try {
             json = new JSONObject(intent.getExtras().getString("com.parse.Data"));

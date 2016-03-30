@@ -28,7 +28,7 @@ public class BDefines {
     public static String BAppVersion = BuildConfig.VERSION_NAME;
 
     /** The server url that is used to do all the API calls.*/
-    public static String ServerUrl = "https://yourfirebase.firebaseio.com/" + BRootPath;
+    public static String ServerUrl = "https://chatcatsdk.firebaseio.com/" + BRootPath;
 
     /**
      * The name of the app image directory that will be seen in the phone image galley

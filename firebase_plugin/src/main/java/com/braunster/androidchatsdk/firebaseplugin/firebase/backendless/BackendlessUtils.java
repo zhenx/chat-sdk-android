@@ -5,11 +5,14 @@
  * Last Modification at: 3/12/15 4:35 PM
  */
 
-package com.braunster.androidchatsdk.firebaseplugin.firebase.parse;
+package com.braunster.androidchatsdk.firebaseplugin.firebase.backendless;
 
 import android.graphics.Bitmap;
 import android.os.Handler;
 
+import com.backendless.Backendless;
+import com.backendless.async.callback.AsyncCallback;
+import com.backendless.exceptions.BackendlessFault;
 import com.braunster.chatsdk.Utils.ImageUtils;
 import com.braunster.chatsdk.Utils.volley.VolleyUtils;
 import com.braunster.chatsdk.dao.BMessage;
@@ -17,9 +20,6 @@ import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.object.BError;
 import com.braunster.chatsdk.object.SaveImageProgress;
-import com.parse.ParseException;
-import com.parse.ParseFile;
-import com.parse.SaveCallback;
 
 import org.jdeferred.Deferred;
 import org.jdeferred.Promise;
@@ -29,11 +29,11 @@ import java.io.ByteArrayOutputStream;
 
 import timber.log.Timber;
 
-public class ParseUtils {
-    public static final String TAG = ParseUtils.class.getSimpleName();
+public class BackendlessUtils {
+    public static final String TAG = BackendlessUtils.class.getSimpleName();
     public static final boolean DEBUG = true;
 
-    public static Promise<String, BError, SaveImageProgress> saveImageToParse(final String path) {
+    public static Promise<String, BError, SaveImageProgress> saveImageToBackendless(final String path) {
 
         //  Loading the bitmap
         Bitmap b = ImageUtils.getCompressed(path);
@@ -42,17 +42,14 @@ public class ParseUtils {
             return reject();
         }
 
-        // Saving the image to parse.
-        final ParseFile parseFile = new ParseFile(DaoCore.generateEntity() + ".jpeg", getByteArray(b));
-
         SaveImageProgress saveImageProgress = new SaveImageProgress();
 
         saveImageProgress.savedImage = b;
         
-        return save(parseFile, saveImageProgress);
+        return save(getByteArray(b), saveImageProgress);
     }
 
-    public static Promise<String, BError, SaveImageProgress> saveImageToParse(Bitmap b, int size){
+    public static Promise<String, BError, SaveImageProgress> saveImageToBackendless(Bitmap b, int size){
 
         if (b == null) {
             return reject();
@@ -60,18 +57,15 @@ public class ParseUtils {
         
         b = ImageUtils.scaleImage(b, size);
 
-        // Saving the image to parse.
-        final ParseFile parseFile = new ParseFile(DaoCore.generateEntity() + ".jpeg", getByteArray(b));
-
         SaveImageProgress saveImageProgress = new SaveImageProgress();
 
         saveImageProgress.savedImage = b;
 
         // Save
-        return save(parseFile, saveImageProgress);
+        return save(getByteArray(b), saveImageProgress);
     }
 
-    public static Promise<String[], BError, SaveImageProgress> saveImageFileToParseWithThumbnail(final String path, final int thumbnailSize){
+    public static Promise<String[], BError, SaveImageProgress> saveImageFileToBackendlessWithThumbnail(final String path, final int thumbnailSize){
         //  Loading the bitmap
         Bitmap b = ImageUtils.getCompressed(path);
 
@@ -81,21 +75,17 @@ public class ParseUtils {
 
         Bitmap thumbnail = ImageUtils.getCompressed(path, thumbnailSize, thumbnailSize);
 
-        // Saving the image to parse.
-        final ParseFile parseFile = new ParseFile(DaoCore.generateEntity() + ".jpeg", getByteArray(b));
-        final ParseFile thumbnailFile = new ParseFile(DaoCore.generateEntity() + ".jpeg", getByteArray(thumbnail, 50));
+        String imageDimensions = ImageUtils.getDimensionAsString(b);
 
-        String imageDimentions = ImageUtils.getDimensionAsString(b);
-
-        if (DEBUG) Timber.d("dimensionsString: %s", imageDimentions);
+        if (DEBUG) Timber.d("dimensionsString: %s", imageDimensions);
 
         SaveImageProgress saveImageProgress = new SaveImageProgress();
 
-        saveImageProgress.dimensionsString = imageDimentions;
+        saveImageProgress.dimensionsString = imageDimensions;
         saveImageProgress.savedImage = b;
         saveImageProgress.savedImageThumbnail = thumbnail;
 
-        return save(parseFile, thumbnailFile, imageDimentions, saveImageProgress);
+        return save(getByteArray(b), getByteArray(thumbnail, 50), imageDimensions, saveImageProgress);
     }
 
     public static Promise<String[], BError, SaveImageProgress> saveBMessageWithImage(BMessage message){
@@ -106,21 +96,17 @@ public class ParseUtils {
             return rejectMultiple();
         }
 
-        Bitmap thumbnail = ImageUtils.getCompressed(message.getResourcesPath(), 
-                BDefines.ImageProperties.MAX_IMAGE_THUMBNAIL_SIZE, 
+        Bitmap thumbnail = ImageUtils.getCompressed(message.getResourcesPath(),
+                BDefines.ImageProperties.MAX_IMAGE_THUMBNAIL_SIZE,
                 BDefines.ImageProperties.MAX_IMAGE_THUMBNAIL_SIZE);
 
-        // Saving the image to parse.
-        final ParseFile parseFile = new ParseFile(DaoCore.generateEntity() + ".jpeg", getByteArray(b));
-        final ParseFile thumbnailFile = new ParseFile(DaoCore.generateEntity() + ".jpeg", getByteArray(thumbnail, 50));
+        String imageDimensions = ImageUtils.getDimensionAsString(b);
 
-        String imageDimentions = ImageUtils.getDimensionAsString(b);
-
-        if (DEBUG) Timber.d("dimensionsString: %s", imageDimentions);
+        if (DEBUG) Timber.d("dimensionsString: %s", imageDimensions);
 
         SaveImageProgress saveImageProgress = new SaveImageProgress();
 
-        saveImageProgress.dimensionsString = imageDimentions;
+        saveImageProgress.dimensionsString = imageDimensions;
         saveImageProgress.savedImage = b;
         saveImageProgress.savedImageThumbnail = thumbnail;
 
@@ -131,23 +117,24 @@ public class ParseUtils {
 
         message.setImageDimensions(saveImageProgress.dimensionsString);
         
-        return save(parseFile, thumbnailFile, imageDimentions, saveImageProgress);
+        return save(getByteArray(b), getByteArray(thumbnail, 50), imageDimensions, saveImageProgress);
     }
 
-    private static Promise<String, BError, SaveImageProgress> save(final ParseFile parseFile,  final SaveImageProgress saveImageProgress){
+    private static Promise<String, BError, SaveImageProgress> save(final byte[] fileBytes,  final SaveImageProgress saveImageProgress){
         final Deferred<String, BError, SaveImageProgress> deferred = new DeferredObject<>();
-        
-        parseFile.saveInBackground(new SaveCallback() {
+        // Save image byte array to folder images
+        Backendless.Files.saveFile("/images", DaoCore.generateEntity() + ".jpeg", fileBytes, new AsyncCallback<String>() {
             @Override
-            public void done(ParseException e) {
-                if (e != null)
-                {
-                    if (DEBUG) Timber.e(e.getCause(), "Parse Exception while saving: %s", parseFile.getName());
-                    deferred.reject(new BError(BError.Code.BACKENDLESS_EXCEPTION, e));
-                    return;
-                }
+            public void handleResponse(String url) {
+                deferred.resolve(url);
+            }
 
-                deferred.resolve(parseFile.getUrl());
+            @Override
+            public void handleFault(BackendlessFault backendlessFault) {
+                if (DEBUG)
+                    Timber.e(backendlessFault.getMessage(), "Backendless Exception while saving");
+                deferred.reject(new BError(BError.Code.BACKENDLESS_EXCEPTION, backendlessFault));
+                return;
             }
         });
 
@@ -161,30 +148,36 @@ public class ParseUtils {
         return deferred.promise();
     }
 
-    private static Promise<String[], BError, SaveImageProgress> save(final ParseFile parseFile, final ParseFile thumnailFile,
-                                                                final String imageDimentions, final SaveImageProgress saveImageProgress){
+    private static Promise<String[], BError, SaveImageProgress> save(final byte[] fileBytes, final byte[] thumbnailBytes,
+                                                                final String imageDimensions, final SaveImageProgress saveImageProgress){
         final Deferred<String[], BError, SaveImageProgress> deferred = new DeferredObject<>();
-        
-        parseFile.saveInBackground(new SaveCallback() {
+        // Save image byte array to folder images
+        Backendless.Files.saveFile("/images", DaoCore.generateEntity() + ".jpeg", fileBytes, new AsyncCallback<String>() {
             @Override
-            public void done(ParseException e) {
-                if (e != null)
-                {
-                    if (DEBUG) Timber.e(e.getCause(), "Parse Exception while saving: %s", parseFile.getName());
-                    deferred.reject(new BError(BError.Code.BACKENDLESS_EXCEPTION, e));
-                }
-                else thumnailFile.saveInBackground(new SaveCallback() {
+            public void handleResponse(String url) {
+                final String fileURL = url;
+                // Save thumbnail byte array to folder images/thumbnails
+                Backendless.Files.saveFile("/images/thumbnails", DaoCore.generateEntity() + ".jpeg", fileBytes, new AsyncCallback<String>() {
                     @Override
-                    public void done(ParseException e) {
-                        if (e != null)
-                        {
-                            if (DEBUG) Timber.e(e.getCause(), "Parse Exception while saving: %s", thumnailFile.getName());
-                            deferred.reject(new BError(BError.Code.BACKENDLESS_EXCEPTION, e));
-                            return;
-                        }
-                        else deferred.resolve(new String[]{parseFile.getUrl(), thumnailFile.getUrl(), imageDimentions} );
+                    public void handleResponse(String url) {
+                        deferred.resolve(new String[]{fileURL, url, imageDimensions});
+                    }
+
+                    @Override
+                    public void handleFault(BackendlessFault backendlessFault) {
+                        if (DEBUG)
+                            Timber.e(backendlessFault.getMessage(), "Backendless Exception while saving");
+                        deferred.reject(new BError(BError.Code.BACKENDLESS_EXCEPTION, backendlessFault));
+                        return;
                     }
                 });
+            }
+
+            @Override
+            public void handleFault(BackendlessFault backendlessFault) {
+                if (DEBUG)
+                    Timber.e(backendlessFault.toString(), "Backendless Exception while saving");
+                deferred.reject(new BError(BError.Code.BACKENDLESS_EXCEPTION, backendlessFault));
             }
         });
 
