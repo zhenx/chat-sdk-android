@@ -16,6 +16,7 @@ import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.fragments.ChatSDKBaseFragment;
 import com.braunster.chatsdk.fragments.ChatSDKContactsFragment;
 import com.braunster.chatsdk.fragments.ChatSDKConversationsFragment;
+import com.braunster.chatsdk.fragments.ChatSDKNearbyUsersFragment;
 import com.braunster.chatsdk.fragments.ChatSDKThreadsFragment;
 import com.braunster.chatsdk.fragments.ChatcatProfileFragment;
 
@@ -24,13 +25,13 @@ import com.braunster.chatsdk.fragments.ChatcatProfileFragment;
  */
 public class AbstractChatSDKTabsAdapter extends FragmentPagerAdapter implements PagerSlidingTabStrip.IconTabProvider {
 
-    protected final String[] titles = {"Conversations", "Chat Rooms", "Contacts", "Profile"};
+    protected final String[] titles = {"Conversations", "Chat Rooms", "Nearby Users", "Contacts", "Profile"};
 
-    protected ChatSDKBaseFragment[] fragments = new ChatSDKBaseFragment[] {ChatSDKConversationsFragment.newInstance(), ChatSDKThreadsFragment.newInstance(), ChatSDKContactsFragment.newInstance("ConvFragmentPage"), ChatcatProfileFragment.newInstance()};
+    protected ChatSDKBaseFragment[] fragments = new ChatSDKBaseFragment[] {ChatSDKConversationsFragment.newInstance(), ChatSDKThreadsFragment.newInstance(), ChatSDKNearbyUsersFragment.newInstance(), ChatSDKContactsFragment.newInstance("ConvFragmentPage"), ChatcatProfileFragment.newInstance()};
 
-    protected int[] icnns = new int[] {R.drawable.ic_action_private, R.drawable.ic_action_public, R.drawable.ic_action_contacts, R.drawable.ic_action_user };
+    protected int[] icnns = new int[] {R.drawable.ic_action_private, R.drawable.ic_action_public, R.drawable.ic_glass, R.drawable.ic_action_contacts, R.drawable.ic_action_user };
 
-    public static final int Profile = 3, ChatRooms = 1, Contacts = 2, Conversations = 0;
+    public static final int Profile = 3, ChatRooms = 1, Contacts = 2, Conversations = 0, NearbyUsers = 4;
 
     public AbstractChatSDKTabsAdapter(FragmentManager fm) {
         super(fm);

@@ -96,6 +96,17 @@ public class FirebasePaths extends Firebase{
         return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BPublicThreadPath);
     }
 
+    /* Locations */
+    /** @return The location main ref.*/
+    public static FirebasePaths locationRef(){
+        return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BLocationsPath);
+    }
+
+    /** @return The location ref for given id.*/
+    public static FirebasePaths locationRef(String firebaseId){
+        return locationRef().appendPathComponent(firebaseId);
+    }
+
     /* Index */
     public static FirebasePaths indexRef(){
         return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BIndexPath);

@@ -67,6 +67,8 @@ public abstract class AbstractNetworkAdapter {
     protected Context context;
 
     private AbstractEventManager eventManager;
+
+    private AbstractGeoFireManager geoFireManager;
     
     public AbstractNetworkAdapter(Context context){
         this.context = context;
@@ -89,6 +91,8 @@ public abstract class AbstractNetworkAdapter {
     public abstract Promise<BUser, BError, Void> pushUser();
 
     public abstract BUser currentUserModel();
+
+    public abstract AbstractGeoFireManager geoFireManager();
 
     public abstract void goOnline();
 
@@ -197,7 +201,7 @@ public abstract class AbstractNetworkAdapter {
         if (date == null)
             date = new Date();
 
-        message.setDate( new Date(date.getTime() + 1) );
+        message.setDate(new Date(date.getTime() + 1));
 
         DaoCore.updateEntity(message);
 
@@ -601,6 +605,14 @@ public abstract class AbstractNetworkAdapter {
 
     public AbstractEventManager getEventManager() {
         return eventManager;
+    }
+
+    public void setGeoFireManager(AbstractGeoFireManager geoFireManager) {
+        this.geoFireManager = geoFireManager;
+    }
+
+    public AbstractGeoFireManager getGeoFireManager() {
+        return geoFireManager;
     }
 
     /**

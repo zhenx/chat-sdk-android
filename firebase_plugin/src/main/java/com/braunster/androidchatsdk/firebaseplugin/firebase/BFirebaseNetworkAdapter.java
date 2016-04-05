@@ -11,6 +11,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 
 import com.braunster.androidchatsdk.firebaseplugin.R;
+import com.braunster.androidchatsdk.firebaseplugin.firebase.geofire.BGeoFireManager;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.parse.ParseUtils;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.parse.PushUtils;
 import com.braunster.chatsdk.Utils.Debug;
@@ -70,10 +71,13 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         FirebaseEventsManager eventManager = FirebaseEventsManager.getInstance();
         setEventManager(eventManager);
 
+        // Adding the geofire manager
+        BGeoFireManager geoFireManager = BGeoFireManager.sharedManager();
+        setGeoFireManager(geoFireManager);
+
         // Parse init
         Parse.initialize(context, context.getString(R.string.parse_app_id), context.getString(R.string.parse_client_key));
         ParseInstallation.getCurrentInstallation().saveInBackground();
-
     }
 
 
