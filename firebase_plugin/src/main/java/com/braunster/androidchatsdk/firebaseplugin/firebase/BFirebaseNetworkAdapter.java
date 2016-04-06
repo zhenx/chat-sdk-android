@@ -335,8 +335,10 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
 
                     for (BUser user : message.getBThreadOwner().getUsers()) {
                         if (!user.equals(currentUser)) {
-                            Timber.v(user.getEntityID() + ", " + user.getOnline().toString());
-                            if (user.getOnline() == null || !user.getOnline())
+                            // Timber.v(user.getEntityID() + ", " + user.getOnline().toString());
+                            // sends push notification regardless of receiver online status
+                            // TODO: add observer to online status
+                            // if (user.getOnline() == null || !user.getOnline())
                                 users.add(user);
                         }
                     }

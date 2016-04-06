@@ -14,7 +14,7 @@ import com.backendless.messaging.DeliveryOptions;
 import com.backendless.messaging.MessageStatus;
 import com.backendless.messaging.PublishOptions;
 import com.backendless.messaging.PushBroadcastMask;
-import com.braunster.androidchatsdk.firebaseplugin.firebase.parse.ChatSDKReceiverParse;
+import com.backendless.messaging.PushPolicyEnum;
 import com.braunster.chatsdk.dao.BMessage;
 import com.parse.ParseInstallation;
 import com.parse.ParsePush;
@@ -23,9 +23,7 @@ import com.parse.ParseQuery;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import timber.log.Timber;
 
@@ -70,7 +68,7 @@ public class PushUtils {
 
         JSONObject data = new JSONObject();
         try {
-            data.put(ACTION, ChatSDKReceiverParse.ACTION_MESSAGE);
+            data.put(ACTION, ChatSDKReceiver.ACTION_MESSAGE);
 
             data.put(CONTENT, fullText);
             data.put(MESSAGE_ENTITY_ID, message.getEntityID());
@@ -92,10 +90,17 @@ public class PushUtils {
 
         // Only push to android devices
         DeliveryOptions deliveryOptions = new DeliveryOptions();
+        deliveryOptions.setPushPolicy(PushPolicyEnum.ONLY);
         deliveryOptions.setPushBroadcast(PushBroadcastMask.ANDROID);
 
         // Publish a push notification to each channel
         for(String channel : channels) {
+            try {
+                data.put(Channel, channel);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
             Backendless.Messaging.publish(channel, data.toString(), publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
                 @Override
                 public void handleResponse(MessageStatus response) {
@@ -124,6 +129,7 @@ public class PushUtils {
             publishOptionsIOS.setPublisherId(message.getBUserSender().getEntityID());
 
             DeliveryOptions deliveryOptionsIOS = new DeliveryOptions();
+            deliveryOptions.setPushPolicy(PushPolicyEnum.ONLY);
             deliveryOptionsIOS.setPushBroadcast(PushBroadcastMask.IOS);
 
             for(String channel : channels) {
@@ -181,8 +187,7 @@ public class PushUtils {
         Timber.v("pushutils sendfollowpush");
         JSONObject data = new JSONObject();
         try {
-
-            data.put(ACTION, ChatSDKReceiverParse.ACTION_FOLLOWER_ADDED);
+            data.put(ACTION, ChatSDKReceiver.ACTION_FOLLOWER_ADDED);
             data.put(CONTENT, content);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -194,6 +199,7 @@ public class PushUtils {
         publishOptions.putHeader("android-content-text", "");
 
         DeliveryOptions deliveryOptions = new DeliveryOptions();
+        deliveryOptions.setPushPolicy(PushPolicyEnum.ONLY);
         deliveryOptions.setPushBroadcast(PushBroadcastMask.ANDROID);
 
         Backendless.Messaging.publish(channel, data.toString(), publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
@@ -222,6 +228,7 @@ public class PushUtils {
             publishOptionsIOS.putHeader("android-content-text", "");
 
             DeliveryOptions deliveryOptionsIOS = new DeliveryOptions();
+            deliveryOptions.setPushPolicy(PushPolicyEnum.ONLY);
             deliveryOptionsIOS.setPushBroadcast(PushBroadcastMask.IOS);
 
             Backendless.Messaging.publish(channel, dataIOS.toString(), publishOptionsIOS, deliveryOptionsIOS, new AsyncCallback<MessageStatus>() {

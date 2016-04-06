@@ -7,10 +7,10 @@
 
 package com.braunster.androidchatsdk.firebaseplugin.firebase.backendless;
 
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import com.backendless.push.BackendlessBroadcastReceiver;
 import com.braunster.androidchatsdk.firebaseplugin.R;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebasePaths;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BThreadWrapper;
@@ -50,7 +50,7 @@ import timber.log.Timber;
  * Then the receiver will check if the user is authenticated, If he his the notification will lead him to the ChatActivity else he will be directed to the LoginActivity.
  *
  */
-public class ChatSDKReceiver extends BroadcastReceiver {
+public class ChatSDKReceiver extends BackendlessBroadcastReceiver {
 
     private static final String TAG = ChatSDKReceiver.class.getSimpleName();
     private static final boolean DEBUG = Debug.ChatSDKReceiver;
@@ -59,27 +59,35 @@ public class ChatSDKReceiver extends BroadcastReceiver {
     public static final String ACTION_FOLLOWER_ADDED = "com.braunster.chatsdk.parse.FOLLOWER_ADDED";
 
     @Override
-    public void onReceive(final Context context, Intent intent) {
-        Timber.v("receiver on receive");
+    public boolean onMessage(final Context context, Intent intent) {
+
         if (!BNetworkManager.preferences.getBoolean(BDefines.Prefs.PushEnabled, BNetworkManager.PushEnabledDefaultValue))
-            return;
+            return false;
 
-        String action = intent.getAction();
+        try {
+            final JSONObject json = new JSONObject(intent.getExtras().getString("message"));
 
-        if (action.equals(ACTION_MESSAGE))
-        {
-            // Getting the push channel used.
-            String channel = intent.getExtras().getString("com.parse.Channel");
-            
-            if (DEBUG) Timber.d("got action: %s, on channel: %s ", action , channel);
-            
-            createMessageNotification(context, intent, channel);
+            String action = json.getString(PushUtils.ACTION);
+
+            if (action.equals(ACTION_MESSAGE))
+            {
+                // Getting the push channel used.
+                String channel = json.getString(PushUtils.Channel);
+
+                if (DEBUG) Timber.d("got action: %s, on channel: %s ", action , channel);
+
+                createMessageNotification(context, intent, channel);
+            }
+            // Follower added action
+            else if (action.equals(ACTION_FOLLOWER_ADDED))
+            {
+                createFollowerNotification(context, intent);
+            }
+        } catch (JSONException e) {
+            if (DEBUG) Timber.e(e.getCause(), "JSONException: %s", e.getMessage());
         }
-        // Follower added action
-        else if (action.equals(ACTION_FOLLOWER_ADDED))
-        {
-            createFollowerNotification(context, intent);
-        }
+
+        return false;
     }
     
     @SuppressWarnings("all")// For supressing the BMessasge setType(int type) warning.
@@ -88,10 +96,8 @@ public class ChatSDKReceiver extends BroadcastReceiver {
         try {
             if (DEBUG) Timber.v("onReceive");
 
-
-
             // The data saved for this push message.
-            final JSONObject json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
+            final JSONObject json = new JSONObject(intent.getExtras().getString("message"));
 
             // If the push is not for the current user we ignore it.
             if (BNetworkManager.sharedManager().getNetworkAdapter() != null) {
@@ -275,7 +281,7 @@ public class ChatSDKReceiver extends BroadcastReceiver {
         Timber.v("receiver create follower notification");
         final JSONObject json;
         try {
-            json = new JSONObject(intent.getExtras().getString("com.parse.Data"));
+            json = new JSONObject(intent.getExtras().getString("message"));
             Intent resultIntent = new Intent(context, ChatSDKUiHelper.getInstance().mainActivity);
             NotificationUtils.createAlertNotification(context, BDefines.FOLLOWER_NOTIFICATION_ID, resultIntent,
                     NotificationUtils.getDataBundle(context.getString(R.string.not_follower_title), context.getString(R.string.not_follower_ticker),

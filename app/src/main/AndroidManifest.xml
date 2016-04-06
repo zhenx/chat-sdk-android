@@ -65,7 +65,7 @@
         </receiver>-->
 
         <!-- Backendless -->
-        <receiver android:name="com.backendless.push.BackendlessBroadcastReceiver" android:permission="com.google.android.c2dm.permission.SEND">
+        <receiver android:name="com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.ChatSDKReceiver" android:permission="com.google.android.c2dm.permission.SEND">
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE"/>
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION"/>

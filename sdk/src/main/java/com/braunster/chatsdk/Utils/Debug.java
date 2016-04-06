@@ -72,5 +72,5 @@ public class Debug {
 
 
 
-    public static final boolean NotificationUtils = true;
+    public static final boolean NotificationUtils = false;
 }
