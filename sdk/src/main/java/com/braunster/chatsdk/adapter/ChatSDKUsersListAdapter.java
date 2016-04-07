@@ -77,6 +77,7 @@ public class ChatSDKUsersListAdapter extends ChatSDKAbstractUsersListAdapter<Cha
         else holder = (ViewHolder) row.getTag();
 
         holder.textView.setText(userItem.getText());
+        holder.distanceTextView.setText(userItem.getDistance());
 
         if (textColor!=-1991)
             holder.textView.setTextColor(textColor);
@@ -138,7 +139,20 @@ public class ChatSDKUsersListAdapter extends ChatSDKAbstractUsersListAdapter<Cha
                         user.getThumbnailPictureURL(),
                         user.getMetaPictureUrl(),
                         TYPE_USER,
-                        user.getOnline() == null ? false : user.getOnline());
+                        user.getOnline() == null ? false : user.getOnline(),
+                        -1.0);
+            }
+
+            @Override
+            public AbstractUserListItem fromBUserAndDistance(BUser user, Double distance) {
+                return  new AbstractUserListItem(R.layout.chat_sdk_row_contact,
+                        user.getEntityID(),
+                        user.getMetaName(),
+                        user.getThumbnailPictureURL(),
+                        user.getMetaPictureUrl(),
+                        TYPE_USER,
+                        user.getOnline() == null ? false : user.getOnline(),
+                        distance);
             }
 
             @Override

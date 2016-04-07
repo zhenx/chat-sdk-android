@@ -75,6 +75,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
     public class ViewHolder {
         public CircleImageView profilePicture;
         public TextView textView;
+        public TextView distanceTextView;
         public CheckBox checkBox;
 
         public AbstractProfilePicLoader profilePicLoader;
@@ -152,6 +153,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         View row =  ( (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) ).inflate(userItems.get(position).getResourceID(), null);
 
         holder.textView = (TextView) row.findViewById(R.id.chat_sdk_txt);
+        holder.distanceTextView = (TextView) row.findViewById(R.id.chat_sdk_distance);
 
         if (getItemViewType(position) == TYPE_USER)
         {
@@ -191,6 +193,14 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
     public void addRow(BUser user){
         userItems.add(itemMaker.fromBUser(user));
+
+        userIDs.add(user.getEntityID());
+
+        notifyDataSetChanged();
+    }
+
+    public void addRow(BUser user, Double distance){
+        userItems.add(itemMaker.fromBUserAndDistance(user, distance));
 
         userIDs.add(user.getEntityID());
 
@@ -267,6 +277,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         public Bitmap picture;
         public String pictureURL;
         public String pictureThumbnailURL;
+        public String distance;
         public boolean online;
 
 
@@ -274,7 +285,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
         public int type, resourceID;
 
-        public AbstractUserListItem(int resourceID, String entityID, String text, String pictureThumbnailURL, String pictureURL, int type, boolean online) {
+        public AbstractUserListItem(int resourceID, String entityID, String text, String pictureThumbnailURL, String pictureURL, int type, boolean online, Double distance) {
             this.text = text;
             this.online = online;
             this.pictureURL = pictureURL;
@@ -283,6 +294,13 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
             this.type = type;
             this.entityID = entityID;
             this.fromURL = true;
+
+            // if no distance is given leave it empty
+            if(distance == null || distance == -1.0) {
+                this.distance = "";
+            } else {
+                this.distance = distance.intValue() + " m away";
+            }
         }
 
         public AbstractUserListItem(int resourceID, String text, int type) {
@@ -309,6 +327,10 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
         public String getEntityID() {
             return entityID;
+        }
+
+        public String getDistance() {
+            return distance;
         }
 
         public boolean isFromURL() {
@@ -515,6 +537,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
      * * * */
     protected interface UserListItemMaker<E extends ChatSDKAbstractUsersListAdapter.AbstractUserListItem> {
         public E fromBUser(BUser user);
+        public E fromBUserAndDistance(BUser user, Double distance);
         public E getHeader(String type);
         public List<E> getListWithHeaders(List<E> list);
     }

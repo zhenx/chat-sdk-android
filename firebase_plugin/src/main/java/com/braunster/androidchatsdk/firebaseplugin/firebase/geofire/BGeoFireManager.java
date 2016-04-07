@@ -18,14 +18,10 @@ import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
 import com.firebase.geofire.GeoQueryEventListener;
-import com.firebase.geofire.util.GeoUtils;
 
 import org.jdeferred.DoneCallback;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import timber.log.Timber;
 
@@ -39,9 +35,9 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
     private static final String TAG = BGeoFireManager.class.getSimpleName();
     private static final boolean DEBUG = Debug.BGeoFireManager;
 
-    private double bSearchRadius = 5.0;
-    private long bLocationUpdateTime = 2000;
-    private float bMinDistance = 0f;
+    private double bSearchRadius = 5000.0;
+    private long bLocationUpdateTime = 5000;
+    private float bMinDistance = 0.1f;
     private String currentProvider = "";
 
     private LocationManager locationManager = null;
@@ -76,18 +72,18 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
     public void init(Context ctx) {
         context = ctx;
         if (locationManager == null) {
-            Timber.v("init");
+            if(DEBUG) Timber.v("init GeoFireManager");
             locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
             if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                Timber.v("gps provider");
+                if(DEBUG) Timber.v("gps provider");
                 currentProvider = LocationManager.GPS_PROVIDER;
             } else {
                 if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    Timber.v("network provider");
+                    if(DEBUG) Timber.v("network provider");
                     currentProvider = LocationManager.NETWORK_PROVIDER;
                 } else {
-                    Timber.v("no provider enabled");
+                    if(DEBUG) Timber.v("no provider enabled");
                 }
             }
         }
@@ -99,14 +95,14 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
 
         GeoFire geoFire = new GeoFire(FirebasePaths.locationRef());
 
-        GeoQuery circleQuery = geoFire.queryAtLocation(getCurrentGeoLocation(), radiusInMetres);
+        GeoQuery circleQuery = geoFire.queryAtLocation(getCurrentGeoLocation(), radiusInMetres / 1000.0);
 
         final String userEntityID = BNetworkManager.sharedManager().getNetworkAdapter().currentUserModel().getEntityID();
 
         circleQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String entityID, final GeoLocation location) {
-                if(entityID != userEntityID)
+                if(!entityID.equals(userEntityID))
                 {
                     BUserWrapper.initWithEntityId(entityID).once().then(new DoneCallback<BUser>() {
                         @Override
@@ -121,18 +117,17 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
 
             @Override
             public void onKeyExited(String entityID) {
-                if(entityID != userEntityID)
+                if(!entityID.equals(userEntityID))
                 {
                     BUserWrapper userWrapper = BUserWrapper.initWithEntityId(entityID);
 
                     delegate.userRemoved(userWrapper.getModel());
                 }
-
             }
 
             @Override
             public void onKeyMoved(String entityID, GeoLocation location) {
-                if(entityID != userEntityID)
+                if(!entityID.equals(userEntityID))
                 {
                     BUserWrapper userWrapper = BUserWrapper.initWithEntityId(entityID);
 
@@ -209,7 +204,8 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
 
     @Override
     public void onLocationChanged(Location location) {
-        Timber.e("Location changed: " + location.toString());
+        if(DEBUG) Timber.e("Location changed: " + location.toString());
+
         if(isUpdating) {
             updateCurrentUserLocation();
         }
@@ -217,7 +213,7 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        Timber.v(provider + " " + status);
+        if(DEBUG) Timber.v(provider + " " + status);
     }
 
     @Override

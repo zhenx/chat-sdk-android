@@ -10,8 +10,9 @@ import android.widget.ProgressBar;
 
 import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.Utils.Debug;
-import com.braunster.chatsdk.adapter.ChatSDKNearbyUsersListAdapter;
+import com.braunster.chatsdk.adapter.ChatSDKUsersListAdapter;
 import com.braunster.chatsdk.dao.BUser;
+import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.interfaces.GeoInterface;
 import com.braunster.chatsdk.network.BNetworkManager;
 import com.braunster.chatsdk.object.UIUpdater;
@@ -41,11 +42,11 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
     public static boolean DESC = false;
 
     private ListView listNearbyUsers;
-    private ChatSDKNearbyUsersListAdapter adapter;
+    private ChatSDKUsersListAdapter adapter;
     private ProgressBar progressBar;
     private UIUpdater uiUpdater;
 
-    private GeoLocation currentUserGeoLocation;
+    private GeoLocation currentUserGeoLocation = new GeoLocation(0.0, 0.0);
     private Map<BUser, GeoLocation> usersLocationsMap;
 
     public static ChatSDKNearbyUsersFragment newInstance() {
@@ -87,36 +88,32 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
     }
 
     private void initList(){
-        adapter = new ChatSDKNearbyUsersListAdapter(getActivity());
+        adapter = new ChatSDKUsersListAdapter(getActivity());
 
         listNearbyUsers.setAdapter(adapter);
 
         listNearbyUsers.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                // startChatActivityForID(adapter.getItem(position).getId());
+                if (adapter.getItem(position).getType() == ChatSDKUsersListAdapter.TYPE_HEADER)
+                    return;
+
+                final BUser clickedUser = DaoCore.fetchEntityWithEntityID(BUser.class, adapter.getItem(position).getEntityID());
+
+                createAndOpenThreadWithUsers(clickedUser.getMetaName(), clickedUser, getNetworkAdapter().currentUserModel());
             }
         });
     }
 
     public void updateList(Map<BUser, Double> userDistanceMap) {
-        adapter.clear();
+        if(adapter != null) {
+            adapter.clear();
 
-        for(BUser user : userDistanceMap.keySet()) {
-            adapter.addRow(user);
+            for(BUser user : userDistanceMap.keySet()) {
+                adapter.addRow(user, userDistanceMap.get(user));
+            }
         }
     }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-
-        // load data in background
-
-    }
-
-
-
 
     public boolean userAdded(BUser user, GeoLocation location) {
         usersLocationsMap.put(user, location);
@@ -147,6 +144,7 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
 
     public boolean setCurrentUserGeoLocation(GeoLocation location) {
         currentUserGeoLocation = location;
+        updateList(getSortedUsersDistanceMap());
 
         return true;
     }
