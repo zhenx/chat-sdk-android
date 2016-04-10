@@ -77,14 +77,15 @@ public class ChatSDKUsersListAdapter extends ChatSDKAbstractUsersListAdapter<Cha
         else holder = (ViewHolder) row.getTag();
 
         holder.textView.setText(userItem.getText());
-        holder.distanceTextView.setText(userItem.getDistance());
 
         if (textColor!=-1991)
             holder.textView.setTextColor(textColor);
 
         if (getItemViewType(position) == TYPE_USER)
         {
-           if (userItem.fromURL)
+            holder.distanceTextView.setText(userItem.getDistance());
+
+            if (userItem.fromURL)
             {
                 int size = holder.profilePicture.getHeight();
 
@@ -158,6 +159,11 @@ public class ChatSDKUsersListAdapter extends ChatSDKAbstractUsersListAdapter<Cha
             @Override
             public AbstractUserListItem getHeader(String type) {
                 return new AbstractUserListItem(com.braunster.chatsdk.R.layout.chat_sdk_list_header, type, TYPE_HEADER);
+            }
+
+            @Override
+            public AbstractUserListItem getBand(String type) {
+                return new AbstractUserListItem(com.braunster.chatsdk.R.layout.chat_sdk_row_band, type, TYPE_BAND);
             }
 
             @Override

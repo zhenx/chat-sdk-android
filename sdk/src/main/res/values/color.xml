@@ -15,6 +15,8 @@
     <color name="chat_sdk_button_anonymous_button_color">#aaaaaa</color>
     <color name="chat_sdk_button_anonymous_button_color_pressed">#888787</color>
 
+    <color name="chat_sdk_band">#11000000</color>
+
     <color name="background_tab_pressed">#6633B5E5</color>
 
 </resources>

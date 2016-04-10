@@ -55,6 +55,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
     public static final int TYPE_USER = 1991;
     public static final int TYPE_HEADER = 1992;
+    public static final int TYPE_BAND = 1993;
 
     protected static final String H_ONLINE = "ONLINE", H_OFFLINE = "OFFLINE", H_NO_ONLINE = "NO ONLINE CONTACTS", H_NO_OFFLINE = "NO OFFLINE CONTACTS", H_NO_CONTACTS = "NO CONTACTS";
 
@@ -153,10 +154,10 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         View row =  ( (LayoutInflater) mActivity.getSystemService(Context.LAYOUT_INFLATER_SERVICE) ).inflate(userItems.get(position).getResourceID(), null);
 
         holder.textView = (TextView) row.findViewById(R.id.chat_sdk_txt);
-        holder.distanceTextView = (TextView) row.findViewById(R.id.chat_sdk_distance);
 
         if (getItemViewType(position) == TYPE_USER)
         {
+            holder.distanceTextView = (TextView) row.findViewById(R.id.chat_sdk_distance);
             holder.profilePicture = (CircleImageView) row.findViewById(R.id.img_profile_picture);
             if (isMultiSelect)
             {
@@ -203,6 +204,22 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         userItems.add(itemMaker.fromBUserAndDistance(user, distance));
 
         userIDs.add(user.getEntityID());
+
+        notifyDataSetChanged();
+    }
+
+    public void addBand(Double lowerBorder, Double upperBorder) {
+        String text;
+
+        if(lowerBorder == 0.0) {
+            text = "Less than " + ((Double) (upperBorder / 1000.0)).intValue() + " km";
+        }
+        else
+        {
+            text = ((Double) (lowerBorder / 1000.0)).intValue() + " to " + ((Double) (upperBorder / 1000.0)).intValue() + " km";
+        }
+
+        userItems.add(itemMaker.getBand(text));
 
         notifyDataSetChanged();
     }
@@ -539,6 +556,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         public E fromBUser(BUser user);
         public E fromBUserAndDistance(BUser user, Double distance);
         public E getHeader(String type);
+        public E getBand(String type);
         public List<E> getListWithHeaders(List<E> list);
     }
 

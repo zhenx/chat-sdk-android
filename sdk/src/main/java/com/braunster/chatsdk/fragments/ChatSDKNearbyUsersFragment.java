@@ -19,6 +19,7 @@ import com.braunster.chatsdk.object.UIUpdater;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.util.GeoUtils;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -45,6 +46,7 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
     private ChatSDKUsersListAdapter adapter;
     private ProgressBar progressBar;
     private UIUpdater uiUpdater;
+    private ArrayList<Double> distanceBands;
 
     private GeoLocation currentUserGeoLocation = new GeoLocation(0.0, 0.0);
     private Map<BUser, GeoLocation> usersLocationsMap;
@@ -57,6 +59,12 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(false);
+
+        distanceBands = new ArrayList<Double>();
+        distanceBands.add(1000.0);
+        distanceBands.add(5000.0);
+        distanceBands.add(10000.0);
+        distanceBands.add(50000.0);
 
         usersLocationsMap = new HashMap<BUser, GeoLocation>();
     }
@@ -109,8 +117,27 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
         if(adapter != null) {
             adapter.clear();
 
+            adapter.addBand(0.0, distanceBands.get(0));
+
+            int nextBandIndex = 0;
+            Double currentDistance = 0.0;
+
             for(BUser user : userDistanceMap.keySet()) {
-                adapter.addRow(user, userDistanceMap.get(user));
+                currentDistance = userDistanceMap.get(user);
+                for(int i = nextBandIndex; i < distanceBands.size(); i++) {
+                    if(currentDistance > distanceBands.get(nextBandIndex)) {
+                        if(currentDistance > distanceBands.get(nextBandIndex + 1)) {
+                            nextBandIndex++;
+                        }
+                        else
+                        {
+                            adapter.addBand(distanceBands.get(nextBandIndex), distanceBands.get(nextBandIndex + 1));
+                            nextBandIndex++;
+                        }
+                    }
+                }
+
+                adapter.addRow(user, currentDistance);
             }
         }
     }

@@ -35,7 +35,7 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
     private static final String TAG = BGeoFireManager.class.getSimpleName();
     private static final boolean DEBUG = Debug.BGeoFireManager;
 
-    private double bSearchRadius = 5000.0;
+    private double bSearchRadius = 50000.0;
     private long bLocationUpdateTime = 5000;
     private float bMinDistance = 0.1f;
     private String currentProvider = "";
