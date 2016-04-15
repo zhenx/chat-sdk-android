@@ -1,5 +1,7 @@
 package com.braunster.chatsdk.network;
 
+import android.content.Context;
+
 import com.braunster.chatsdk.interfaces.GeoInterface;
 
 /**
@@ -9,5 +11,5 @@ public abstract class AbstractGeoFireManager {
 
     public abstract void setGeoDelegate(GeoInterface delegate);
 
-    public abstract void start();
+    public abstract void start(Context ctx);
 }

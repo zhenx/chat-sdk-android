@@ -228,6 +228,11 @@ public class BDefines {
         public static boolean ThreadDetailsEnabled = true;
 
         /**
+         * if true the option to open the thread details would be visible in the chat activity.
+         **/
+        public static boolean ShrinkTabsToFitHorizontally = true;
+
+        /**
          * If true images opened in the chat activity will be saved to the user image gallery
          * under the name assigned in the ImageDirName, Also images you pick from gallery and send will be saved.
          * If this is disabled images will be saved to the app cache directory. 

@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.Utils.Debug;
@@ -42,10 +43,14 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
     public static boolean ASC = true;
     public static boolean DESC = false;
 
+    private boolean showBands = true;
+    private boolean isVisibleToUser;
+
     private ListView listNearbyUsers;
     private ChatSDKUsersListAdapter adapter;
     private ProgressBar progressBar;
     private UIUpdater uiUpdater;
+    private TextView noUsersTextView;
     private ArrayList<Double> distanceBands;
 
     private GeoLocation currentUserGeoLocation = new GeoLocation(0.0, 0.0);
@@ -78,20 +83,29 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
         return mainView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+Timber.e("onresume");
+        BNetworkManager.sharedManager().getNetworkAdapter().getGeoFireManager().setGeoDelegate(this);
+        BNetworkManager.sharedManager().getNetworkAdapter().getGeoFireManager().start(getActivity().getApplicationContext());
+    }
+
     private void init(LayoutInflater inflater){
         mainView = inflater.inflate(R.layout.chat_sdk_activity_nearby_users, null);
 
+        initViews();
+
         // Register this view with the GeoFireManager
         BNetworkManager.sharedManager().getNetworkAdapter().getGeoFireManager().setGeoDelegate(this);
-        BNetworkManager.sharedManager().getNetworkAdapter().getGeoFireManager().start();
-
-        initViews();
+        BNetworkManager.sharedManager().getNetworkAdapter().getGeoFireManager().start(getActivity().getApplicationContext());
     }
 
     @Override
     public void initViews() {
         listNearbyUsers = (ListView) mainView.findViewById(R.id.list_nearby_users);
         progressBar = (ProgressBar) mainView.findViewById(R.id.chat_sdk_progress_bar);
+        noUsersTextView = (TextView) mainView.findViewById(R.id.textView);
         initList();
     }
 
@@ -114,39 +128,71 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
     }
 
     public void updateList(Map<BUser, Double> userDistanceMap) {
-        if(adapter != null) {
-            adapter.clear();
+        if(isVisibleToUser)
+        {
+            if(currentUserGeoLocation.latitude == 0.0 && currentUserGeoLocation.longitude == 0.0)
+            {
+                setState(R.string.searching_nearby_users);
+            }
+            else
+            {
+                if (usersLocationsMap == null || usersLocationsMap.isEmpty())
+                {
+                    setState(R.string.no_nearby_users);
+                }
+                else
+                {
+                    if (noUsersTextView != null) noUsersTextView.setVisibility(View.INVISIBLE);
 
-            adapter.addBand(0.0, distanceBands.get(0));
+                    if (adapter != null) {
+                        adapter.clear();
 
-            int nextBandIndex = 0;
-            Double currentDistance = 0.0;
+                        int nextBandIndex = 0;
+                        Double currentDistance = 0.0;
 
-            for(BUser user : userDistanceMap.keySet()) {
-                currentDistance = userDistanceMap.get(user);
-                for(int i = nextBandIndex; i < distanceBands.size(); i++) {
-                    if(currentDistance > distanceBands.get(nextBandIndex)) {
-                        if(currentDistance > distanceBands.get(nextBandIndex + 1)) {
-                            nextBandIndex++;
-                        }
-                        else
-                        {
-                            adapter.addBand(distanceBands.get(nextBandIndex), distanceBands.get(nextBandIndex + 1));
-                            nextBandIndex++;
+                        if (showBands) adapter.addBand(0.0, distanceBands.get(0));
+
+                        for (BUser user : userDistanceMap.keySet()) {
+                            currentDistance = userDistanceMap.get(user);
+
+                            if (showBands)
+                            {
+                                for (int i = nextBandIndex; i < distanceBands.size(); i++)
+                                {
+                                    if ((nextBandIndex + 1) < distanceBands.size() && currentDistance > distanceBands.get(nextBandIndex))
+                                    {
+                                        if (currentDistance > distanceBands.get(nextBandIndex + 1))
+                                        {
+                                            nextBandIndex++;
+                                        }
+                                        else
+                                        {
+                                            adapter.addBand(distanceBands.get(nextBandIndex), distanceBands.get(nextBandIndex + 1));
+                                            nextBandIndex++;
+                                        }
+                                    }
+                                }
+                            }
+
+                            adapter.addRow(user, currentDistance);
                         }
                     }
                 }
-
-                adapter.addRow(user, currentDistance);
             }
         }
+    }
+
+    @Override
+    public void setUserVisibleHint(boolean isVisibleToUser) {
+        super.setUserVisibleHint(isVisibleToUser);
+        this.isVisibleToUser = isVisibleToUser;
     }
 
     public boolean userAdded(BUser user, GeoLocation location) {
         usersLocationsMap.put(user, location);
         updateList(getSortedUsersDistanceMap());
 
-        Timber.v("user added: " + user.getEntityID());
+        if(DEBUG) Timber.v("user added: " + user.getEntityID());
 
         return true;
     }
@@ -155,7 +201,7 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
         usersLocationsMap.put(user, location);
         updateList(getSortedUsersDistanceMap());
 
-        Timber.v("user moved: " + user.getEntityID());
+        if(DEBUG) Timber.v("user moved: " + user.getEntityID());
 
         return true;
     }
@@ -164,7 +210,7 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
         usersLocationsMap.remove(user);
         updateList(getSortedUsersDistanceMap());
 
-        Timber.v("user removed: " + user.getEntityID());
+        if(DEBUG) Timber.v("user removed: " + user.getEntityID());
 
         return true;
     }
@@ -172,6 +218,21 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
     public boolean setCurrentUserGeoLocation(GeoLocation location) {
         currentUserGeoLocation = location;
         updateList(getSortedUsersDistanceMap());
+
+        return true;
+    }
+
+    public boolean setState(int stringResId) {
+        if (noUsersTextView != null) {
+            noUsersTextView.setText(getResources().getString(stringResId));
+        }
+
+        if(stringResId == R.string.location_disabled) {
+            listNearbyUsers.setVisibility(View.INVISIBLE);
+            noUsersTextView.setVisibility(View.VISIBLE);
+        } else {
+            listNearbyUsers.setVisibility(View.VISIBLE);
+        }
 
         return true;
     }

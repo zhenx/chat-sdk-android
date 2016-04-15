@@ -6,6 +6,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
+import com.braunster.androidchatsdk.firebaseplugin.R;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebasePaths;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BUserWrapper;
 import com.braunster.chatsdk.Utils.Debug;
@@ -61,31 +62,36 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
     }
 
     @Override
-    public void start() {
+    public void start(Context ctx) {
+        context = ctx;
+        if (locationManager == null) {
+            if(DEBUG) Timber.v("init GeoFireManager");
+            locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        }
+
+        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            if(DEBUG) Timber.v("gps provider");
+            currentProvider = LocationManager.GPS_PROVIDER;
+        } else {
+            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+                if(DEBUG) Timber.v("network provider");
+                currentProvider = LocationManager.NETWORK_PROVIDER;
+            } else {
+                if(DEBUG) Timber.v("no provider enabled");
+                currentProvider = "";
+            }
+        }
+
         if (currentProvider != "") {
             locationManager.requestLocationUpdates(currentProvider, bLocationUpdateTime, bMinDistance, this);
             startUpdatingUserLocation();
             findNearbyUsersWithRadius(bSearchRadius);
         }
-    }
 
-    public void init(Context ctx) {
-        context = ctx;
-        if (locationManager == null) {
-            if(DEBUG) Timber.v("init GeoFireManager");
-            locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-
-            if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-                if(DEBUG) Timber.v("gps provider");
-                currentProvider = LocationManager.GPS_PROVIDER;
-            } else {
-                if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                    if(DEBUG) Timber.v("network provider");
-                    currentProvider = LocationManager.NETWORK_PROVIDER;
-                } else {
-                    if(DEBUG) Timber.v("no provider enabled");
-                }
-            }
+        if (currentProvider == "") {
+            delegate.setState(R.string.location_disabled);
+        } else {
+            delegate.setState(R.string.searching_nearby_users);
         }
     }
 

@@ -12,4 +12,5 @@ public interface GeoInterface {
     boolean userMoved(BUser user, GeoLocation location);
     boolean userRemoved(BUser user);
     boolean setCurrentUserGeoLocation(GeoLocation location);
+    boolean setState(int stringResId);
 }

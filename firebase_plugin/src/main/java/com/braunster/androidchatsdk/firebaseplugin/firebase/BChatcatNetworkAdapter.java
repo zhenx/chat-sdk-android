@@ -313,9 +313,6 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
     @Override
     public void goOnline() {
         Firebase.goOnline();
-
-        // GeoFire init
-        BGeoFireManager.sharedManager().init(context);
         
         setUserOnline();
     }

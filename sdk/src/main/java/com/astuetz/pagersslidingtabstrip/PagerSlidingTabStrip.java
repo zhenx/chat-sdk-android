@@ -19,9 +19,13 @@ package com.astuetz.pagersslidingtabstrip;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.PorterDuff;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Parcel;
@@ -40,8 +44,12 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.braunster.chatsdk.R;
+import com.braunster.chatsdk.Utils.ImageUtils;
+import com.braunster.chatsdk.network.BDefines;
 
 import java.util.Locale;
+
+import timber.log.Timber;
 
 public class PagerSlidingTabStrip extends HorizontalScrollView {
 
@@ -238,10 +246,57 @@ public class PagerSlidingTabStrip extends HorizontalScrollView {
 	private void addIconTab(final int position, int resId) {
 
 		ImageButton tab = new ImageButton(getContext());
-		tab.setImageResource(resId);
+
+		if(BDefines.Options.ShrinkTabsToFitHorizontally) {
+			Bitmap image = BitmapFactory.decodeResource(getResources(), resId);
+
+			DisplayMetrics metrics = getResources().getDisplayMetrics();
+
+			// Calculate the maximum width of the tab image
+			int maxWidth = (int) metrics.xdpi;
+			maxWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxWidth, metrics);
+
+			// Calculate the width taken by the dividers and their padding
+			int dividerSpace = (dividerWidth + (dividerPadding * 2)) * (tabCount - 1);
+			// Calculate the width taken by the tabs padding
+			int tabsPaddingTotal = tabCount * 2 * tabPadding;
+			// Subtract those
+			maxWidth -= dividerSpace + tabsPaddingTotal;
+			// And divide by the amount of tabs
+			maxWidth /= tabCount;
+
+			// Calculate the maximum height of the tab image
+			int maxHeight = 48;
+			maxHeight = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, maxHeight, metrics);
+
+			image = resize(image, maxWidth, maxHeight);
+			tab.setImageBitmap(image);
+		} else {
+			tab.setImageResource(resId);
+		}
 
 		addTab(position, tab);
+	}
 
+	private static Bitmap resize(Bitmap image, int maxWidth, int maxHeight) {
+		if (maxHeight > 0 && maxWidth > 0) {
+			int width = image.getWidth();
+			int height = image.getHeight();
+			float ratioBitmap = (float) width / (float) height;
+			float ratioMax = (float) maxWidth / (float) maxHeight;
+
+			int finalWidth = maxWidth;
+			int finalHeight = maxHeight;
+			if (ratioMax > 1) {
+				finalWidth = (int) ((float)maxHeight * ratioBitmap);
+			} else {
+				finalHeight = (int) ((float)maxWidth / ratioBitmap);
+			}
+			image = Bitmap.createScaledBitmap(image, finalWidth, finalHeight, true);
+			return image;
+		} else {
+			return image;
+		}
 	}
 
 	private void addTab(final int position, View tab) {
