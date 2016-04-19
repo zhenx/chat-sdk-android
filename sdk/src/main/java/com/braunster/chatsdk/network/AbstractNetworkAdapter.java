@@ -577,8 +577,12 @@ public abstract class AbstractNetworkAdapter {
 
 
 
-    public boolean parseEnabled(){
+    /*public boolean parseEnabled(){
         return StringUtils.isNotEmpty(context.getString(R.string.parse_app_id)) && StringUtils.isNotEmpty(context.getString(R.string.parse_client_key));
+    }*/
+
+    public boolean backendlessEnabled(){
+        return StringUtils.isNotEmpty(context.getString(R.string.backendless_app_id)) && StringUtils.isNotEmpty(context.getString(R.string.backendless_secret_key));
     }
 
     public boolean facebookEnabled(){
