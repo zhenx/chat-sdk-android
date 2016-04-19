@@ -230,7 +230,7 @@ public class BDefines {
         /**
          * if true the option to open the thread details would be visible in the chat activity.
          **/
-        public static boolean ShrinkTabsToFitHorizontally = true;
+        public static boolean ShrinkTabsToFitHorizontally = false;
 
         /**
          * If true images opened in the chat activity will be saved to the user image gallery

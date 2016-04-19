@@ -102,6 +102,7 @@
     <string name="searching_nearby_users">Searching for nearby users...</string>
     <string name="no_nearby_users">No nearby users</string>
     <string name="location_disabled">Please enable location services in your phones settings</string>
+    <string name="show_list">Show list</string>
 
     <!--PublicThreadFragment-->
     <string name="public_thread_fragment_add_item_text">Add Public chat Room</string>
