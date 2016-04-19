@@ -2,25 +2,67 @@
 <items version="2" >
 
     <item
+        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\sdk\unspecified\jars\libs\bugsense-3.6.1.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="2abc3ded4c77f897fdc9cffed67d723cdd680b7f">
+        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\bugsense-3.6.1_ece3e2f61afc258c7ea1a9973edec574c103695a.jar" />
+    </item>
+    <item
+        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\firebase_plugin\unspecified\jars\libs\firebase-client-android-2.2.3.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="0c68045b6da6ebf23bc0801170a6a107dfea0967">
+        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\firebase-client-android-2.2.3_11394bcc4a6047dbc7b203ac1129f8b4644a728e.jar" />
+    </item>
+    <item
         jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\firebase_plugin\unspecified\jars\libs\Parse-1.5.0.jar"
         jumboMode="false"
         revision="21.1.2"
-        sha1="8dd44347c265cf0becbce319d05ee8c559372392">
+        sha1="9cc10364dbc69db7feba0c2be66d8efbe8859bff">
         <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\Parse-1.5.0_5c4579f1c343c5f0ef75e182c45a7e94e73d64a3.jar" />
     </item>
     <item
         jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\firebase_plugin\unspecified\jars\classes.jar"
         jumboMode="false"
         revision="21.1.2"
-        sha1="335089cb0f78b60a75a8389a5cdb1f77799792ca">
+        sha1="c5e474ee9ef5af13a2a89ed84a85a85a0e470818">
         <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\Chatcat-Android-firebase_plugin-unspecified_8fc63cac7ba2286f85c9c12edeae1d42b55abfeb.jar" />
     </item>
     <item
-        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\firebase_plugin\unspecified\jars\libs\firebase-client-android-2.2.3.jar"
+        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\sdk\unspecified\jars\libs\slf4j-api-1.7.10.jar"
         jumboMode="false"
         revision="21.1.2"
-        sha1="5302b99e535d1c5f649160997375321411778a9d">
-        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\firebase-client-android-2.2.3_11394bcc4a6047dbc7b203ac1129f8b4644a728e.jar" />
+        sha1="4f872dc3e3816d2b8f2de262f773a6be490d9d15">
+        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\slf4j-api-1.7.10_22b0937fec10d177c15adbeceb6739bff4091c38.jar" />
+    </item>
+    <item
+        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\sdk\unspecified\jars\libs\slf4j-android-1.7.10.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="a00a8723ff3c4a7ac8ed4d9ed6306695eecbebef">
+        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\slf4j-android-1.7.10_083ab05789386c9b820192036d3e7b8d450e7d1c.jar" />
+    </item>
+    <item
+        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\sdk\unspecified\jars\libs\jdeferred-core-1.2.3.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="8b5f512b3d85f4764740a7c9a36b87c3782746d1">
+        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\jdeferred-core-1.2.3_b23d8e276a65a333ab4939390286e48c885ae80e.jar" />
+    </item>
+    <item
+        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\sdk\unspecified\jars\classes.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="348c13eaa1732325aef6da4f8d86c34944410bc2">
+        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\Chatcat-Android-sdk-unspecified_06940c0b633dbaf906e764941f105205a0a3f069.jar" />
+    </item>
+    <item
+        jar="D:\Chatcat\Chatcat-Android\app\build\intermediates\exploded-aar\Chatcat-Android\sdk\unspecified\jars\libs\timber-2.7.1.jar"
+        jumboMode="false"
+        revision="21.1.2"
+        sha1="cd538f95513d01bc16da4968e57b282b87813305">
+        <dex dex="D:\Chatcat\Chatcat-Android\app\build\intermediates\pre-dexed\debug\timber-2.7.1_6053268ae7f8ea21530ae3386c4abfd5b8c2efd2.jar" />
     </item>
 
 </items>

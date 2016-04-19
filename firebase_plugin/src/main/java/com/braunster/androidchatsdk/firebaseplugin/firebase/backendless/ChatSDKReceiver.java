@@ -92,7 +92,7 @@ public class ChatSDKReceiver extends BackendlessBroadcastReceiver {
     
     @SuppressWarnings("all")// For supressing the BMessasge setType(int type) warning.
     private void createMessageNotification(final Context context, Intent intent, String channel){
-        Timber.v("receiver create message notification");
+        if(DEBUG) Timber.v("receiver create message notification");
         try {
             if (DEBUG) Timber.v("onReceive");
 
@@ -278,7 +278,7 @@ public class ChatSDKReceiver extends BackendlessBroadcastReceiver {
 
 
     private void createFollowerNotification(Context context, Intent intent){
-        Timber.v("receiver create follower notification");
+        if(DEBUG) Timber.v("receiver create follower notification");
         final JSONObject json;
         try {
             json = new JSONObject(intent.getExtras().getString("message"));

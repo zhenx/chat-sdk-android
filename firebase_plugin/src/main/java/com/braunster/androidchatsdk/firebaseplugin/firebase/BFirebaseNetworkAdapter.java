@@ -74,8 +74,7 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         /*Parse.initialize(context, context.getString(R.string.parse_app_id), context.getString(R.string.parse_client_key));
         ParseInstallation.getCurrentInstallation().saveInBackground();*/
 
-        String appVersion = "v1";
-        Backendless.initApp(context, context.getString(R.string.backendless_app_id), context.getString(R.string.backendless_secret_key), appVersion);
+        Backendless.initApp(context, context.getString(R.string.backendless_app_id), context.getString(R.string.backendless_secret_key), context.getString(R.string.backendless_app_version));
     }
 
 

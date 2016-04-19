@@ -15,6 +15,7 @@ import com.backendless.messaging.MessageStatus;
 import com.backendless.messaging.PublishOptions;
 import com.backendless.messaging.PushBroadcastMask;
 import com.backendless.messaging.PushPolicyEnum;
+import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.dao.BMessage;
 import com.parse.ParseInstallation;
 import com.parse.ParsePush;
@@ -31,6 +32,9 @@ import static com.braunster.chatsdk.dao.entities.BMessageEntity.Type.IMAGE;
 import static com.braunster.chatsdk.dao.entities.BMessageEntity.Type.LOCATION;
 
 public class PushUtils {
+
+    private static final String TAG = PushUtils.class.getSimpleName();
+    private static final boolean DEBUG = Debug.PushUtils;
 
     static final String ACTION = "action";
     static final String ALERT = "alert";
@@ -55,7 +59,7 @@ public class PushUtils {
 
 
     public static void sendMessage(BMessage message, Collection<String> channels){
-        Timber.v("pushutils sendmessage");
+        if (DEBUG) Timber.v("pushutils sendmessage");
         String messageText = message.getText();
 
         if (message.getType() == LOCATION)
@@ -104,12 +108,12 @@ public class PushUtils {
             Backendless.Messaging.publish(channel, data.toString(), publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
                 @Override
                 public void handleResponse(MessageStatus response) {
-                    Timber.v("Message published");
+                    if (DEBUG) Timber.v("Message published");
                 }
 
                 @Override
                 public void handleFault(BackendlessFault fault) {
-                    Timber.v("Publish failed, " + fault.getMessage());
+                    if (DEBUG) Timber.v("Publish failed, " + fault.getMessage());
                 }
             });
         }
@@ -136,12 +140,12 @@ public class PushUtils {
                 Backendless.Messaging.publish(channel, dataIOS.toString(), publishOptionsIOS, deliveryOptionsIOS, new AsyncCallback<MessageStatus>() {
                     @Override
                     public void handleResponse(MessageStatus response) {
-                        Timber.v("Message published");
+                        if (DEBUG) Timber.v("Message published");
                     }
 
                     @Override
                     public void handleFault(BackendlessFault fault) {
-                        Timber.v("Publish failed");
+                        if (DEBUG) Timber.v("Publish failed");
                     }
                 });
             }
@@ -184,7 +188,7 @@ public class PushUtils {
     /** @param channel The channel to push to.
      * @param content The follow notification content.*/
     public static void sendFollowPush(String channel, String content){
-        Timber.v("pushutils sendfollowpush");
+        if (DEBUG) Timber.v("pushutils sendfollowpush");
         JSONObject data = new JSONObject();
         try {
             data.put(ACTION, ChatSDKReceiver.ACTION_FOLLOWER_ADDED);
@@ -205,12 +209,12 @@ public class PushUtils {
         Backendless.Messaging.publish(channel, data.toString(), publishOptions, deliveryOptions, new AsyncCallback<MessageStatus>() {
             @Override
             public void handleResponse(MessageStatus response) {
-                Timber.v("Message published");
+                if (DEBUG) Timber.v("Message published");
             }
 
             @Override
             public void handleFault(BackendlessFault fault) {
-                Timber.v("Publish failed");
+                if (DEBUG) Timber.v("Publish failed");
             }
         });
 
@@ -234,12 +238,12 @@ public class PushUtils {
             Backendless.Messaging.publish(channel, dataIOS.toString(), publishOptionsIOS, deliveryOptionsIOS, new AsyncCallback<MessageStatus>() {
                 @Override
                 public void handleResponse(MessageStatus response) {
-                    Timber.v("Message published");
+                    if (DEBUG) Timber.v("Message published");
                 }
 
                 @Override
                 public void handleFault(BackendlessFault fault) {
-                    Timber.v("Publish failed");
+                    if (DEBUG) Timber.v("Publish failed");
                 }
             });
 

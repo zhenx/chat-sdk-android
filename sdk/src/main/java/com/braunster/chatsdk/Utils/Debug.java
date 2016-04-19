@@ -54,6 +54,7 @@ public class Debug {
     public static final boolean ImageUtils = false;
     public static final boolean UiUtils = false;
     public static final boolean DialogUtils = false;
+    public static final boolean PushUtils = false;
 
     /*Views*/
     public static final boolean ChatBubbleImageView = false;

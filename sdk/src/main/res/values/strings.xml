@@ -24,6 +24,7 @@
             <!--Backendless-->
             <string name="backendless_app_id">4DE42144-CA5D-2D98-FF56-5BBA89C25900</string>
             <string name="backendless_secret_key">EC26E4A7-FEEE-FCDC-FF72-5D4D65515100</string>
+            <string name="backendless_app_version">v1</string>
 
             <string name="google_project_number">555099509092</string>
 
