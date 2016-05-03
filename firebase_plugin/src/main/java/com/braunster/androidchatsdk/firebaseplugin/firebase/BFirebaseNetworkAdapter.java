@@ -11,6 +11,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 
 import com.backendless.Backendless;
+import com.backendless.DeviceRegistration;
 import com.backendless.async.callback.AsyncCallback;
 import com.backendless.exceptions.BackendlessFault;
 import com.braunster.androidchatsdk.firebaseplugin.R;
@@ -420,7 +421,17 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
 
         // TODO: unsubscribe from push channel backendless
         // http://support.backendless.com/topic/push-notification-unregister-from-a-specific-channel
-        Backendless.Messaging.unregisterDevice();
+        DeviceRegistration devReg = null;
+
+        try {
+            devReg = Backendless.Messaging.getDeviceRegistration();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if(devReg != null) {
+            Backendless.Messaging.unregisterDevice();
+        }
 
         // PushService.unsubscribe(context, channel);
     }
