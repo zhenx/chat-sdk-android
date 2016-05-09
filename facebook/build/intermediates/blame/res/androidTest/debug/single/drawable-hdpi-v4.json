@@ -32,12 +32,12 @@
         "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_button_blue_focused.9.png"
     },
     {
-        "merged": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-hdpi-v4\\com_facebook_button_blue_normal.9.png",
-        "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_button_blue_normal.9.png"
-    },
-    {
         "merged": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-hdpi-v4\\com_facebook_picker_magnifier.png",
         "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_picker_magnifier.png"
+    },
+    {
+        "merged": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-hdpi-v4\\com_facebook_button_blue_normal.9.png",
+        "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_button_blue_normal.9.png"
     },
     {
         "merged": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-hdpi-v4\\com_facebook_button_grey_normal.9.png",
@@ -64,11 +64,11 @@
         "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_tooltip_black_topnub.png"
     },
     {
-        "merged": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-hdpi-v4\\com_facebook_tooltip_black_xout.png",
-        "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_tooltip_black_xout.png"
-    },
-    {
         "merged": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-hdpi-v4\\com_facebook_tooltip_black_bottomnub.png",
         "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_tooltip_black_bottomnub.png"
+    },
+    {
+        "merged": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\res\\merged\\androidTest\\debug\\drawable-hdpi-v4\\com_facebook_tooltip_black_xout.png",
+        "source": "D:\\Chatcat\\Chatcat-Android\\facebook\\build\\intermediates\\bundles\\debug\\res\\drawable-hdpi-v4\\com_facebook_tooltip_black_xout.png"
     }
 ]
