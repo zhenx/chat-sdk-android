@@ -166,6 +166,7 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
                     {
                         int currentBandIndex = 0;
                         Double currentDistance = 0.0;
+                        String currentUserID = BNetworkManager.sharedManager().getNetworkAdapter().currentUserModel().getEntityID();
 
                         // Loop through all users and their distances
                         for (BUser user : userDistanceMap.keySet()) {
@@ -179,7 +180,7 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
                                 {
                                     // Check if we will still be in the bounds of the distanceBands array when incrementing and
                                     // check if the current distance is bigger than the lower border of the current band
-                                    if ((currentBandIndex + 1) < distanceBands.size() && currentDistance > distanceBands.get(currentBandIndex))
+                                    if ((currentBandIndex + 1) < distanceBands.size() && currentDistance >= distanceBands.get(currentBandIndex))
                                     {
                                         // If the current user distance exceeds the upper border of the current band go to the next band
                                         if (currentDistance > distanceBands.get(currentBandIndex + 1))
@@ -196,7 +197,10 @@ public class ChatSDKNearbyUsersFragment extends ChatSDKBaseFragment implements G
                                 }
                             }
 
-                            adapter.addRow(user, currentDistance);
+                            if(!user.getEntityID().equals(currentUserID))
+                            {
+                                adapter.addRow(user, currentDistance);
+                            }
                         }
                     }
                 }
