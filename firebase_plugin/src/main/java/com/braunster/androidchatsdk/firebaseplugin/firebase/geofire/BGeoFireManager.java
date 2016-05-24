@@ -1,6 +1,7 @@
 package com.braunster.androidchatsdk.firebaseplugin.firebase.geofire;
 
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -64,23 +65,20 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
     @Override
     public void start(Context ctx) {
         context = ctx;
-        if (locationManager == null) {
-            if(DEBUG) Timber.v("init GeoFireManager");
+
+        if(DEBUG) Timber.v("init GeoFireManager");
+
+        if(locationManager == null) {
             locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        } else {
+            locationManager.removeUpdates(this);
         }
 
-        if (locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
-            if(DEBUG) Timber.v("gps provider");
-            currentProvider = LocationManager.GPS_PROVIDER;
-        } else {
-            if (locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
-                if(DEBUG) Timber.v("network provider");
-                currentProvider = LocationManager.NETWORK_PROVIDER;
-            } else {
-                if(DEBUG) Timber.v("no provider enabled");
-                currentProvider = "";
-            }
-        }
+        Criteria crit = new Criteria();
+        crit.setAccuracy(Criteria.ACCURACY_FINE);
+        currentProvider = locationManager.getBestProvider(crit, false);
+
+        if(DEBUG) Timber.v("current provider: " + currentProvider);
 
         if (currentProvider != "") {
             locationManager.requestLocationUpdates(currentProvider, bLocationUpdateTime, bMinDistance, this);
@@ -154,11 +152,9 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
     }
 
     private void startUpdatingUserLocation() {
-        if(!isUpdating) {
-            updateCurrentUserLocation();
+        updateCurrentUserLocation();
 
-            isUpdating = true;
-        }
+        isUpdating = true;
     }
 
     private void stopUpdatingUserLocation() {
@@ -178,16 +174,18 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
     }
 
     private void updateCurrentUserLocation() {
-        if(getCurrentGeoLocation() == null) return;
+        GeoLocation currentLocation = getCurrentGeoLocation();
+
+        if(currentLocation == null) return;
 
         BUser currentUser = BNetworkManager.sharedManager().getNetworkAdapter().currentUserModel();
 
         if(currentUser != null) {
             GeoFire geoFire = new GeoFire(FirebasePaths.locationRef());
-            geoFire.setLocation(currentUser.getEntityID(), getCurrentGeoLocation());
+            geoFire.setLocation(currentUser.getEntityID(), currentLocation);
         }
 
-        delegate.setCurrentUserGeoLocation(getCurrentGeoLocation());
+        delegate.setCurrentUserGeoLocation(currentLocation);
     }
 
     public Location getCurrentUserLocation() {
@@ -219,16 +217,18 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
 
     @Override
     public void onStatusChanged(String provider, int status, Bundle extras) {
-        if(DEBUG) Timber.v(provider + " " + status);
+        if(DEBUG) Timber.v("status changed: " + provider + " " + status);
     }
 
     @Override
     public void onProviderDisabled(String provider) {
+        if(DEBUG) Timber.e("Provider disabled");
         stopUpdatingUserLocation();
     }
 
     @Override
     public void onProviderEnabled(String provider) {
+        if(DEBUG) Timber.e("Provider enabled");
         startUpdatingUserLocation();
     }
 }
