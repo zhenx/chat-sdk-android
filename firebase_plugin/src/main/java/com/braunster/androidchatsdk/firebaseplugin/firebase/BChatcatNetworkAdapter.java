@@ -10,7 +10,6 @@ package com.braunster.androidchatsdk.firebaseplugin.firebase;
 import android.content.Context;
 
 import com.braunster.androidchatsdk.firebaseplugin.R;
-import com.braunster.androidchatsdk.firebaseplugin.firebase.geofire.BGeoFireManager;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.parse.PushUtils;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BMessageWrapper;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BThreadWrapper;
@@ -22,7 +21,6 @@ import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BThreadEntity;
-import com.braunster.chatsdk.network.AbstractGeoFireManager;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BFirebaseDefines;
 import com.braunster.chatsdk.object.BError;
@@ -1072,9 +1070,5 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
     private void updateLastOnline(){
         // FIXME to implement?
         
-    }
-
-    public AbstractGeoFireManager geoFireManager() {
-        return geoFireManager();
     }
 }

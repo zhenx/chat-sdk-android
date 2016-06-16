@@ -68,7 +68,7 @@ public abstract class AbstractNetworkAdapter {
 
     private AbstractEventManager eventManager;
 
-    private AbstractGeoFireManager geoFireManager;
+    protected AbstractGeoFireManager geoFireManager;
     
     public AbstractNetworkAdapter(Context context){
         this.context = context;
