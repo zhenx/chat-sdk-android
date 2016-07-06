@@ -17,6 +17,7 @@ import com.braunster.chatsdk.dao.BMessageDao;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BFirebaseDefines;
@@ -350,10 +351,12 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
                             msg.model.setBThreadOwner(BThreadWrapper.this.model);
                             
                             DaoCore.updateEntity(msg.model);
+
+                            msg.setReadReceipt(BMessageEntity.ReadStatus.Delivered);
                             
                             msgs.add(msg.model);
                         }
-                        
+
                         deferred.resolve(msgs);
                     }
                     else
@@ -368,7 +371,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
                 }
             });
         }
-        
+
         return deferred.promise();
     }
 
