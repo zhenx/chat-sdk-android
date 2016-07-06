@@ -17,6 +17,7 @@ import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.firebase.client.DataSnapshot;
 
 import org.jdeferred.Deferred;
@@ -62,8 +63,6 @@ public class InMessagesListener extends FirebaseGeneralEvent {
                     }
                     
                     BMessageWrapper wrapper = BMessageWrapper.initWithSnapshot(dataSnapshot);
-
-                    wrapper.setDelivered(BMessage.Delivered.Yes);
                     
                     // Checking for null sender and that the sender isn't the current user.
                     // This will make sure we wont notify user for his own messages.
@@ -104,6 +103,16 @@ public class InMessagesListener extends FirebaseGeneralEvent {
 
                     // Update the message.
                     wrapper.model.setBThreadOwner(thread);
+
+                    if(wrapper.getModel().isMine()){
+                        wrapper.initReadReceiptList();
+                        if(wrapper.getModel().getCommonReadStatus() != BMessageEntity.ReadStatus.Read){
+                            wrapper.readReceiptsOn();
+                        }
+                    }else {
+                        wrapper.setReadReceipt(BMessageEntity.ReadStatus.Delivered);
+                    }
+                    wrapper.setDelivered(BMessage.Delivered.Yes);
                     DaoCore.updateEntity(wrapper.model);
 
                     if (deferred != null &&  deferred.isPending())

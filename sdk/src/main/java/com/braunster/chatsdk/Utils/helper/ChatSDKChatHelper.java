@@ -27,7 +27,11 @@ import com.braunster.chatsdk.adapter.ChatSDKMessagesListAdapter;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BMessageDao;
 import com.braunster.chatsdk.dao.BThread;
+import com.braunster.chatsdk.dao.BUser;
+import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.dao.entities.BMessageEntity;
+import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
 import com.braunster.chatsdk.object.BError;
@@ -45,6 +49,7 @@ import org.jdeferred.ProgressCallback;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -116,6 +121,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
 
     private WeakReference<Activity> activity;
     private BThread thread;
+    private BUser currentUser;
     private ChatSDKUiHelper uiHelper;
     private ListView listMessages;
     private ChatMessageBoxView messageBoxView;
@@ -128,6 +134,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
         this.activity = new WeakReference<Activity>(activity);
         this.thread = thread;
         this.uiHelper = uiHelper;
+        currentUser = BNetworkManager.sharedManager().getNetworkAdapter().currentUserModel();
     }
 
 
@@ -282,17 +289,24 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     }
     
     public void markAsRead(List<BMessage> messages){
+        AbstractNetworkAdapter networkAdapter = BNetworkManager.sharedManager().getNetworkAdapter();
         for (BMessage m : messages)
         {
+            if (m.isMine()) continue; // prevents marking own messages as read
             m.setIsRead(true);
             DaoCore.updateEntity(m);
+            networkAdapter.updateUserReadReceipt(m, BMessageEntity.ReadStatus.Read);
             readCount++;
         }
+
     }
 
     public void markAsRead(BMessage message){
+        if(message.isMine()) { return; }
+        AbstractNetworkAdapter networkAdapter = BNetworkManager.sharedManager().getNetworkAdapter();
         message.setIsRead(true);
         DaoCore.updateEntity(message);
+        networkAdapter.updateUserReadReceipt(message,BMessageEntity.ReadStatus.Read);
         readCount++;
     }
 

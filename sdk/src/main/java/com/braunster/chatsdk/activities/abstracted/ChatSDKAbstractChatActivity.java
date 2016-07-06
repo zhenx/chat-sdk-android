@@ -43,7 +43,9 @@ import com.braunster.chatsdk.adapter.ChatSDKMessagesListAdapter;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BThreadDao;
+import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.fragments.ChatSDKContactsFragment;
 import com.braunster.chatsdk.network.BDefines;
@@ -420,8 +422,9 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
                     return false;
                 }
 
-                //Set as read.
+                //Set as read if user is not the owner
                 chatSDKChatHelper.markAsRead(message);
+
 
                 boolean isAdded = messagesListAdapter.addRow(message);
 

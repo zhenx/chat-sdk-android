@@ -12,7 +12,10 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.view.Gravity;
@@ -22,10 +25,13 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.BaseAdapter;
+import android.widget.ImageSwitcher;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.ViewSwitcher;
 
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.ImageLoader;
@@ -42,6 +48,7 @@ import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.network.BDefines;
+import com.braunster.chatsdk.network.BNetworkManager;
 import com.braunster.chatsdk.view.ChatBubbleImageView;
 
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +58,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -221,7 +230,19 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         {
             case TYPE_TEXT_USER:
                 row = inflater.inflate(textUserRowResId, null);
-
+                holder.readStatus = (ImageSwitcher) row.findViewById(R.id.read_status);
+                holder.readStatus.setFactory(new ViewSwitcher.ViewFactory() {
+                    @Override
+                    public View makeView() {
+                        ImageView imageView = new ImageView(mActivity.getApplicationContext());
+                        imageView.setScaleType(ImageView.ScaleType.CENTER);
+                        return imageView;
+                    }
+                });
+                holder.readStatus.setInAnimation(AnimationUtils.loadAnimation(mActivity.getApplicationContext(),
+                        android.R.anim.fade_in));
+                holder.readStatus.setOutAnimation(AnimationUtils.loadAnimation(mActivity.getApplicationContext(),
+                        android.R.anim.fade_out));
                 holder.txtContent = (TextView) row.findViewById(R.id.txt_content);
 
                 break;
@@ -236,7 +257,20 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
 
             case TYPE_IMAGE_USER:
                 row = inflater.inflate(imageUserRowResId, null);
+                holder.readStatus = (ImageSwitcher) row.findViewById(R.id.read_status);
 
+                holder.readStatus.setFactory(new ViewSwitcher.ViewFactory() {
+                    @Override
+                    public View makeView() {
+                        ImageView imageView = new ImageView(mActivity.getApplicationContext());
+                        imageView.setScaleType(ImageView.ScaleType.CENTER);
+                        return imageView;
+                    }
+                });
+                holder.readStatus.setInAnimation(AnimationUtils.loadAnimation(mActivity.getApplicationContext(),
+                        android.R.anim.fade_in));
+                holder.readStatus.setOutAnimation(AnimationUtils.loadAnimation(mActivity.getApplicationContext(),
+                        android.R.anim.fade_out));
                 holder.progressBar = (ProgressBar) row.findViewById(R.id.chat_sdk_progress_bar);
                 holder.image = (ChatBubbleImageView) row.findViewById(R.id.chat_sdk_image);
 
@@ -251,7 +285,19 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
 
             case TYPE_LOCATION_USER:
                 row = inflater.inflate(locationUserResId, null);
-
+                holder.readStatus = (ImageSwitcher) row.findViewById(R.id.read_status);
+                holder.readStatus.setFactory(new ViewSwitcher.ViewFactory() {
+                    @Override
+                    public View makeView() {
+                        ImageView imageView = new ImageView(mActivity.getApplicationContext());
+                        imageView.setScaleType(ImageView.ScaleType.CENTER);
+                        return imageView;
+                    }
+                });
+                holder.readStatus.setInAnimation(AnimationUtils.loadAnimation(mActivity.getApplicationContext(),
+                        android.R.anim.fade_in));
+                holder.readStatus.setOutAnimation(AnimationUtils.loadAnimation(mActivity.getApplicationContext(),
+                        android.R.anim.fade_out));
                 holder.progressBar = (ProgressBar) row.findViewById(R.id.chat_sdk_progress_bar);
                 holder.image = (ChatBubbleImageView) row.findViewById(R.id.chat_sdk_image);
 
@@ -280,6 +326,7 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         // Load profile picture.
         holder.profilePicImage = (CircleImageView) row.findViewById(R.id.img_user_image);
         holder.txtTime = (TextView) row.findViewById(R.id.txt_time);
+
    
     }
 
@@ -349,7 +396,27 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         // Set the time of the sending.
         holder.txtTime.setText(message.time);
         animateSides(holder.txtTime, sender, null);
-
+        BMessageEntity.ReadStatus status = null;
+        if(message.bMessage.isMine()) {
+            status = message.bMessage.getCommonReadStatus();
+            if(status != null) {
+                Drawable readStatusImg;
+                switch (status) {
+                    case Delivered:
+                        readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext(),R.drawable.ic_msg_delivered);
+                        break;
+                    case Read:
+                        readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext(),R.drawable.ic_msg_read);
+                        break;
+                    case None:
+                    default:
+                        readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext(),R.drawable.ic_msg_none);
+                }
+                holder.readStatus.setImageDrawable(readStatusImg);
+            }else{
+                BNetworkManager.sharedManager().getNetworkAdapter().readReceiptsOnFromUI(message.bMessage);
+            }
+        }
 
         switch (message.delivered)
         {
@@ -358,7 +425,7 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
                 break;
 
             case BMessage.Delivered.No:
-                row.setAlpha(0.5f);
+                row.setAlpha(0.7f);
                 break;
         }
     }
@@ -524,23 +591,15 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
 
         Timber.d("Checking if exist");
         // Check for duplicates, And update the message status if its already exist.
-        for (MessageListItem item : listData)
-        {
+
+        for (ListIterator iterator = listData.listIterator(); iterator.hasNext();) {
+            MessageListItem item = (MessageListItem) iterator.next();
             Timber.d("OldId: %s, NewId: %s", item.id, newItem.id);
-            
             if (item.id == newItem.id)
             {
-                item.entityId = newItem.entityId;
-                item.status = newItem.status;
-                item.delivered = newItem.delivered;
-                item.url = newItem.url;
-                item.time = newItem.time;
-                item.dimensions = newItem.getDimensions(maxWidth);
-                
                 Timber.d("Updating old item");
-                
+                iterator.set(newItem);
                 notifyDataSetChanged();
-                
                 return false;
             }
         }
@@ -672,24 +731,25 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         private String url;
         private int delivered = BMessage.Delivered.No;
         private String dimensionsString;
+        private BMessage bMessage;
         
-        private MessageListItem(long id, String entityId, int type, int rowType, int status,
-                                long senderID, String profilePicUrl, String time,
-                                String text, String color, long timeInMillis, int delivered, String resourcePath, String dimensionsString) {
-            this.type = type;
-            this.id = id;
-            this.timeInMillis = timeInMillis;
-            this.status = status;
-            this.sender = senderID;
-            this.entityId = entityId;
-            this.profilePicUrl = profilePicUrl;
-            this.time = time;
-            this.text = text;
-            this.color = setColor(color);
-            this.rowType = rowType;
-            this.delivered = delivered;
-            this.resourcePath = resourcePath;
-            this.dimensionsString = dimensionsString;
+        private MessageListItem(BMessage bMessage, Long userID) {
+            BUser bUserSender = bMessage.getBUserSender();
+            this.type = bMessage.getType();
+            this.id = bMessage.getId();
+            this.timeInMillis = bMessage.getDate().getTime();
+            this.status = bMessage.getStatusOrNull();
+            this.sender = bMessage.getSender();
+            this.entityId = bMessage.getEntityID();
+            this.profilePicUrl = bUserSender.getThumbnailPictureURL();
+            this.time = String.valueOf(simpleDateFormat.format(bMessage.getDate()));
+            this.text = bMessage.getText();
+            this.color = setColor(bUserSender.getMessageColor());
+            this.rowType = getRowType(bMessage.getType(), bUserSender.getId(), userID);
+            if(bMessage.getDelivered() != null) this.delivered = bMessage.getDelivered();
+            this.resourcePath = bMessage.getResourcesPath();
+            this.dimensionsString = bMessage.getImageDimensions();
+            this.bMessage = bMessage;
             
             if (type == BMessage.Type.IMAGE || type == BMessage.Type.LOCATION)
                 url = getUrl(text, type);
@@ -702,23 +762,7 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
             if (simpleDateFormat == null)
                 simpleDateFormat = getFormat(message);
 
-            BUser user = message.getBUserSender();
-
-            MessageListItem msg = new MessageListItem( message.getId(),
-                    message.getEntityID(),
-                    message.getType(),
-                    getRowType(message.getType(), user.getId(), userID),
-                    message.getStatusOrNull(),
-                    user.getId(),
-                    user.getThumbnailPictureURL(),
-                    String.valueOf(simpleDateFormat.format(message.getDate())),
-                    message.getText(),
-                    user.getMessageColor(),
-                    message.getDate().getTime(), 
-                    message.wasDelivered(),
-                    message.getResourcesPath(), 
-                    message.getImageDimensions());
-
+            MessageListItem msg = new MessageListItem(message, userID);
             msg.setDimension(maxWidth);
 
             return msg;
@@ -934,6 +978,7 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         ChatBubbleImageView image;
         TextView txtContent;
         ProgressBar progressBar;
+        ImageSwitcher readStatus;
     }
 
 

@@ -23,6 +23,7 @@ import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BThreadDao;
 import com.braunster.chatsdk.dao.BUser;
+import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.network.events.AbstractEventManager;
@@ -115,7 +116,10 @@ public abstract class AbstractNetworkAdapter {
 
 
     
-    protected abstract Promise<BMessage, BError, BMessage> sendMessage(BMessage messages);
+    public abstract Promise<BMessage, BError, BMessage> sendMessage(BMessage messages);
+
+    public abstract void updateUserReadReceipt(final BMessage message, final BMessage.ReadStatus status);
+
 
     /**
      * Preparing a text message,
@@ -138,6 +142,7 @@ public abstract class AbstractNetworkAdapter {
         message.setStatus(BMessageEntity.Status.SENDING);
         message.setDelivered(BMessageEntity.Delivered.No);
 
+
         final BMessage bMessage = DaoCore.createEntity(message);
 
         // Setting the temporary time of the message to be just after the last message that
@@ -149,7 +154,7 @@ public abstract class AbstractNetworkAdapter {
             date = new Date();
         
         message.setDate( new Date(date.getTime() + 1) );
-        
+
         DaoCore.updateEntity(message);
 
         sendMessage(bMessage, deferred);
@@ -330,6 +335,8 @@ public abstract class AbstractNetworkAdapter {
 
         return deferred;
     }
+
+    public abstract void readReceiptsOnFromUI(BMessage message);
 
     public abstract Promise<List<BMessage>, Void, Void> loadMoreMessagesForThread(BThread thread);
 
@@ -555,7 +562,6 @@ public abstract class AbstractNetworkAdapter {
 
     
     public abstract Promise<BThread, BError, Void> pushThread(BThread thread);
-
 
     public abstract Promise<String[], BError, SaveImageProgress> saveBMessageWithImage(BMessage message);
     

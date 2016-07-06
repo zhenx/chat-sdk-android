@@ -32,6 +32,7 @@
 
 -keep class com.braunster.chatsdk.** { *; }
 -keep class com.parse.** { *; }
+-keep class org.jdeferred.** {*;}
 #-keep class com.firebase.** { *; }
 #-keep class org.apache.commons.lang3.StringUtils {*;}
 -keep class org.shaded.apache.commons.logging.impl.** { *; }

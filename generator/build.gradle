@@ -15,9 +15,9 @@ dependencies {
 //    docs.mkdirs()
 //}
 
-run {
+//run {
 //    args outputDir
-}
+//}
 
 artifacts {
     archives jar

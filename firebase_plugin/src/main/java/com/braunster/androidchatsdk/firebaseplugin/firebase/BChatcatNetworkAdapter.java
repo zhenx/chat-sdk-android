@@ -19,7 +19,9 @@ import com.braunster.chatsdk.dao.BFollower;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
+import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BFirebaseDefines;
@@ -33,6 +35,7 @@ import com.firebase.client.ServerValue;
 import com.firebase.client.ValueEventListener;
 
 import org.apache.commons.lang3.StringUtils;
+
 import org.jdeferred.Deferred;
 import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
@@ -364,6 +367,15 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
                 pushForMessage(message);
             }
         });
+    }
+
+    public  void updateUserReadReceipt(final BMessage message, final BMessage.ReadStatus status){
+        BMessageWrapper messageWrapper =  new BMessageWrapper(message);
+        messageWrapper.setReadReceipt(status);
+    }
+
+    public void readReceiptsOnFromUI(BMessage message){
+        new BMessageWrapper(message).readReceiptsOn();
     }
 
     /** Indexing
