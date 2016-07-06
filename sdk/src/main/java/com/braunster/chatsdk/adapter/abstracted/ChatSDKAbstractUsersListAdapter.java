@@ -212,11 +212,13 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         String text;
 
         if(lowerBorder == 0.0) {
-            text = "Less than " + ((Double) (upperBorder / 1000.0)).intValue() + " km";
+            text = mActivity.getString(R.string.less_than) + " " +
+                    ((Double) (upperBorder / 1000.0)).intValue() + " " + mActivity.getString(R.string.kilometers);
         }
         else
         {
-            text = ((Double) (lowerBorder / 1000.0)).intValue() + " to " + ((Double) (upperBorder / 1000.0)).intValue() + " km";
+            text = ((Double) (lowerBorder / 1000.0)).intValue() + " " + mActivity.getString(R.string.to) + " " +
+                    ((Double) (upperBorder / 1000.0)).intValue() + " " + mActivity.getString(R.string.kilometers);
         }
 
         userItems.add(itemMaker.getBand(text));

@@ -495,4 +495,8 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
 
         return new BError(code, errorMessage, error);
     }
+
+    public BGeoFireManager geoFireManager() {
+        return (BGeoFireManager) this.geoFireManager;
+    }
 }
