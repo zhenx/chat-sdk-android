@@ -28,6 +28,7 @@ import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BMessageDao;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
 import com.braunster.chatsdk.object.BError;
@@ -52,7 +53,7 @@ import de.greenrobot.dao.query.QueryBuilder;
 import timber.log.Timber;
 
 
-public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsListener, ChatMessageBoxView.MessageSendListener{
+public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsListener, ChatMessageBoxView.MessageSendListener, ChatMessageBoxView.MessageBoxTypingListener{
 
     public static final int ERROR = 1991, NOT_HANDLED = 1992, HANDELD = 1993;
 
@@ -146,6 +147,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
             messageBoxView.setMessageSendListener(this);
 
         messageBoxView.setMessageBoxOptionsListener(this);
+        messageBoxView.setMessageBoxTypingListener(this);
     }
 
 
@@ -895,5 +897,10 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     public boolean collected(){
         return  activity == null || activity.get() == null;
         
+    }
+
+    public void typingStatusChanged(Boolean isFocused) {
+        AbstractNetworkAdapter networkAdapter = BNetworkManager.sharedManager().getNetworkAdapter();
+        networkAdapter.typingStatusChanged(thread,isFocused);
     }
 }

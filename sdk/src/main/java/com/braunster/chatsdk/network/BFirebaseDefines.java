@@ -33,6 +33,7 @@ public class BFirebaseDefines {
         public static final String BUsersPath = "users";
         public static final String BMessagesPath = "messages";
         public static final String BThreadPath = "threads";
+        public static final String BTyping = "typing";
         public static final String BPublicThreadPath = "public-threads";
         public static final String BDetailsPath = "details";
         public static final String BIndexPath = "searchIndex";

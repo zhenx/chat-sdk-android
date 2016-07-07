@@ -632,6 +632,40 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         
         return deferred.promise();
     }
-    
+
+    /**
+     * When typing is on, a listener is active and updates a local HashMap of currently active users
+     * When changes are detected, the UI is notified through a message handler
+     */
+    public void typingOn(){
+
+    }
+
+    /**
+     *  Turns off the typing listener
+     */
+    public void typingOff(){
+
+    }
+
+    /**
+     * Adds the active user ID as a child to the list of active typers on Firebase.
+     * This list is an online first approach since the typing indicator is only important
+     * when there is an active connection.
+     */
+    public void startTyping(){
+        Firebase ref = FirebasePaths.threadRef(this.entityId).child(BFirebaseDefines.Path.BTyping);
+        BUser currentUser = getNetworkAdapter().currentUserModel();
+        ref.child(currentUser.getEntityID()).setValue(currentUser.getMetaName());
+    }
+
+    /**
+     * Removes the active user ID as a child from the list of active typers on Firebase
+     */
+    public void stopTyping(){
+        Firebase ref = FirebasePaths.threadRef(this.entityId).child(BFirebaseDefines.Path.BTyping);
+        BUser currentUser = getNetworkAdapter().currentUserModel();
+        ref.child(currentUser.getEntityID()).removeValue();
+    }
     
 }
