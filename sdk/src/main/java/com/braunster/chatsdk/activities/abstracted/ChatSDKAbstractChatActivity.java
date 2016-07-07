@@ -48,6 +48,7 @@ import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.fragments.ChatSDKContactsFragment;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
+import com.braunster.chatsdk.network.events.AppEventListener;
 import com.braunster.chatsdk.network.events.BatchedEvent;
 import com.braunster.chatsdk.network.events.Event;
 import com.braunster.chatsdk.network.events.MessageEventListener;
@@ -60,6 +61,7 @@ import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
 
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import timber.log.Timber;
@@ -82,6 +84,7 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
      * It will be removed when activity is paused. or when opened again for new thread.*/
     public static final String MessageListenerTAG = TAG + "MessageTAG";
     public static final String ThreadListenerTAG = TAG + "threadTAG";
+    public static final String TypingListenerTag = TAG + "typingTAG";
 
     /** The key to get the thread long id.*/
     public static final String THREAD_ID = ChatSDKBaseThreadActivity.THREAD_ID;
@@ -457,6 +460,15 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
             }
         });
 
+        final AppEventListener threadUsersTypingListener = new AppEventListener(TypingListenerTag + thread.getId()) {
+            @Override
+            public boolean onThreadUsersTypingChanged(String threadId, Map<String,String> usersTyping){
+                // TODO add ui update
+
+                return false;
+            }
+        };
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -484,6 +496,10 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
                 // Removing the last listener just to be sure we wont receive duplicates notifications.
                 getNetworkAdapter().getEventManager().removeEventByTag(ThreadListenerTAG + thread.getId());
                 getNetworkAdapter().getEventManager().addEvent(threadBatchedEvent);
+
+                getNetworkAdapter().getEventManager().removeEventByTag(TypingListenerTag + thread.getId());
+                getNetworkAdapter().getEventManager().addEvent(threadUsersTypingListener);
+
             }
         }).start();
 

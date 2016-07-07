@@ -97,7 +97,7 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
                 if(!isTyping){ isTyping = true;} // if user was not typing they are now
                 else if(s.length() == 0){ isTyping = false;} // if text is empty they stopped
                 else {return;} // return since they have not changed their status
-                
+
                 messageBoxTypingListener.typingStatusChanged(isTyping);
             }
 

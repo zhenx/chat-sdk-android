@@ -7,6 +7,7 @@
 
 package com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers;
 
+import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseEventsManager;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebasePaths;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.Utils.sorter.MessageSorter;
@@ -73,6 +74,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         AndroidDeferredObject<BThread, Void, Void> androidDeferredObject = new AndroidDeferredObject<BThread, Void, Void>(deferred.promise(), AndroidExecutionScope.UI);
 
         getNetworkAdapter().getEventManager().threadOn(entityId, deferred);
+        typingOn();
         
         return androidDeferredObject.promise();
     }
@@ -83,6 +85,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
     public void off(){
         if (DEBUG) Timber.v("off");
         getNetworkAdapter().getEventManager().threadOff(entityId);
+        typingOff();
     }
 
     /**
@@ -638,7 +641,22 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
      * When changes are detected, the UI is notified through a message handler
      */
     public void typingOn(){
+        Firebase ref = FirebasePaths.threadRef(this.entityId).child(BFirebaseDefines.Path.BTyping);
+        final String threadId = this.entityId;
+        ref.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String,String> usersTyping;
+                FirebaseEventsManager eventSender = FirebaseEventsManager.getInstance();
+                usersTyping = (Map<String,String>) dataSnapshot.getValue();
+                eventSender.onThreadUsersTypingChanged(threadId, usersTyping);
+            }
 
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {
+
+            }
+        });
     }
 
     /**
