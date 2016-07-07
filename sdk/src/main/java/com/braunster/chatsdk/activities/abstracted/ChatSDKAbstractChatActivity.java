@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -60,6 +61,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -109,7 +111,8 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     protected  ListView listMessages;
     protected ChatSDKMessagesListAdapter messagesListAdapter;
     protected  BThread thread;
-
+    protected TextView txtUsersTyping;
+    protected String usersTypingStr = "";
     protected  ProgressBar progressBar;
     protected  int listPos = -1;
 
@@ -186,6 +189,8 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
 
             TextView txtName = (TextView) actionBarView.findViewById(R.id.chat_sdk_name);
             changed = setThreadName(txtName);
+            txtUsersTyping = (TextView) actionBarView.findViewById(R.id.chat_sdk_users_typing);
+            txtUsersTyping.setText(usersTypingStr);
 
 
             final CircleImageView circleImageView = (CircleImageView) actionBarView.findViewById(R.id.chat_sdk_circle_image);
@@ -463,8 +468,44 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
         final AppEventListener threadUsersTypingListener = new AppEventListener(TypingListenerTag + thread.getId()) {
             @Override
             public boolean onThreadUsersTypingChanged(String threadId, Map<String,String> usersTyping){
-                // TODO add ui update
+                String toDisplay = "";
 
+                // set text to empty if no users are typing
+                if(usersTyping == null){
+                    txtUsersTyping.setText(toDisplay);
+                    usersTypingStr = toDisplay;
+                    return false;
+                } else if (usersTyping.size() == 1) { // if only one user is typing
+
+                    Collection<String> usersTypingCollection = usersTyping.values();
+                    for(String userTyping : usersTypingCollection){
+                            toDisplay = toDisplay + userTyping;
+                    }
+                    toDisplay = toDisplay + " is typing";
+                    txtUsersTyping.setText(toDisplay);
+                    usersTypingStr = toDisplay;
+                    return false;
+                }
+
+                // otherwise concatenate all the typers and display
+                Collection<String> usersTypingCollection = usersTyping.values();
+                int i = 0;
+                for(String userTyping : usersTypingCollection){
+                    if(toDisplay.length() + userTyping.length() + 5 >= 20){
+                        toDisplay = toDisplay + ", . . .";
+                        break;
+                    }
+                    if(i == usersTypingCollection.size()) {
+                        toDisplay = toDisplay + ", and " + userTyping;
+                        continue;
+                    }else {
+                        toDisplay = toDisplay + ", " + userTyping;
+                    }
+                    i = i + 1;
+                }
+                toDisplay = toDisplay + " are typing";
+                txtUsersTyping.setText(toDisplay);
+                usersTypingStr = toDisplay;
                 return false;
             }
         };
