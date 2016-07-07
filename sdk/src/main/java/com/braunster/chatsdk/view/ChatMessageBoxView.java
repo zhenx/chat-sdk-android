@@ -8,6 +8,8 @@
 package com.braunster.chatsdk.view;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,6 +25,7 @@ import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.Utils.DialogUtils;
 import com.braunster.chatsdk.Utils.Utils;
+import com.braunster.chatsdk.network.BNetworkManager;
 import com.github.johnpersano.supertoasts.SuperToast;
 
 public class ChatMessageBoxView extends LinearLayout implements View.OnClickListener , View.OnKeyListener, TextView.OnEditorActionListener{
@@ -32,9 +35,11 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
     protected MessageBoxOptionsListener messageBoxOptionsListener;
     protected MessageSendListener messageSendListener;
+    protected MessageBoxTypingListener messageBoxTypingListener;
     protected TextView btnSend;
     protected ImageButton btnOptions;
     protected EditText etMessage;
+    protected Boolean isTyping = false;
     protected PopupWindow optionPopup;
 
     /** The alert toast that the app will use to alert the user.*/
@@ -77,10 +82,30 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
         btnOptions.setOnClickListener(this);
 
+
         etMessage.setOnEditorActionListener(this);
         etMessage.setOnKeyListener(this);
+        etMessage.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                return;
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
 
+                if(!isTyping){ isTyping = true;} // if user was not typing they are now
+                else if(s.length() == 0){ isTyping = false;} // if text is empty they stopped
+                else {return;} // return since they have not changed their status
+                
+                messageBoxTypingListener.typingStatusChanged(isTyping);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                return;
+            }
+        });
     }
 
     /** Show the message option popup, From here the user can send images and location messages.*/
@@ -172,6 +197,10 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
         this.messageSendListener = messageSendListener;
     }
 
+    public void setMessageBoxTypingListener(MessageBoxTypingListener messageBoxTypingListener) {
+        this.messageBoxTypingListener = messageBoxTypingListener;
+    }
+
     public String getMessageText(){
         return etMessage.getText().toString();
     }
@@ -189,11 +218,6 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
         return alertToast;
     }
 
-
-
-
-
-
     public interface MessageBoxOptionsListener{
         public void onLocationPressed();
         public void onTakePhotoPressed();
@@ -205,5 +229,9 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
     public interface MessageSendListener {
         public void onSendPressed(String text);
+    }
+
+    public interface MessageBoxTypingListener {
+        public void typingStatusChanged(Boolean isFocused);
     }
 }

@@ -686,4 +686,6 @@ public abstract class AbstractNetworkAdapter {
 
         return map;
     }
+
+    public abstract void typingStatusChanged(BThread thread, Boolean isFocused);
 }

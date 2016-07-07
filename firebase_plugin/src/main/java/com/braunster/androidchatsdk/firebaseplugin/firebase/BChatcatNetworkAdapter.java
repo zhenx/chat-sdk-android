@@ -1071,4 +1071,9 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
         // FIXME to implement?
         
     }
+
+    public void typingStatusChanged(BThread thread, Boolean isFocused){
+        if(isFocused) new BThreadWrapper(thread).startTyping();
+        else new BThreadWrapper(thread).stopTyping();
+    }
 }
