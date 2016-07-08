@@ -28,6 +28,14 @@
         android:gravity="center_horizontal"
         style="@style/MessageDateStyle"/>
 
+    <ImageSwitcher
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/read_status"
+        android:layout_below="@id/txt_time"
+        android:scaleX="2"
+        android:scaleY="2"></ImageSwitcher>
+
     <!--android:layout_toRightOf="@id/txt_time"-->
     <!-- DO not change this ImageView id the id is used in all message layouts!-->
     <com.braunster.chatsdk.view.ChatBubbleImageView

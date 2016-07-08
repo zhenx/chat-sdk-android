@@ -49,8 +49,15 @@
         android:text="Time"
         android:id="@+id/txt_time"
         android:layout_alignParentLeft="true"
-        android:layout_centerVertical="true"
         style="@style/MessageDateStyle"/>
+
+    <ImageSwitcher
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/read_status"
+        android:layout_below="@id/txt_time"
+        android:scaleX="2"
+        android:scaleY="2"></ImageSwitcher>
 
     <de.hdodenhof.circleimageview.CircleImageView
         style="@style/CircleIconStyle"
