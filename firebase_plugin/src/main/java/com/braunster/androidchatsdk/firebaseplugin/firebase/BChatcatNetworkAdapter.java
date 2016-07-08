@@ -1073,8 +1073,4 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
         // FIXME to implement?
         
     }
-
-    public AbstractGeoFireManager geoFireManager() {
-        return geoFireManager();
-    }
 }
