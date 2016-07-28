@@ -17,8 +17,8 @@ import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.google.firebase.database.DataSnapshot;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
-import com.firebase.client.DataSnapshot;
 
 import org.jdeferred.Deferred;
 

@@ -22,13 +22,13 @@ import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.interfaces.AppEvents;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.object.BError;
-import com.firebase.client.ChildEventListener;
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.Query;
-import com.firebase.client.ServerValue;
-import com.firebase.client.ValueEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ServerValue;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.Query;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdeferred.Deferred;
@@ -143,14 +143,14 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         final Deferred<BMessage, BError, BMessage> deferred = new DeferredObject<>();
         
         // Getting the message ref. Will be created if not exist.
-        Firebase ref = ref();
+        DatabaseReference ref = ref();
         model.setEntityID(ref.getKey());
 
         DaoCore.updateEntity(model);
 
-        ref.setValue(serialize(), ServerValue.TIMESTAMP, new Firebase.CompletionListener() {
+        ref.setValue(serialize(), ServerValue.TIMESTAMP, new DatabaseReference.CompletionListener() {
             @Override
-            public void onComplete(FirebaseError firebaseError, Firebase ref) {
+            public void onComplete(DatabaseError firebaseError, DatabaseReference firebase) {
 
                 if (DEBUG) Timber.v("push message, onDone");
 
@@ -228,7 +228,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                 }
 
                 @Override
-                public void onCancelled(FirebaseError firebaseError) {
+                public void onCancelled(DatabaseError firebaseError) {
                     // children are not expected to be removed
                     if(DEBUG) Log.d(TAG,"ReadReceiptsOn: FirebaseError" +
                             "\n    msg: " + firebaseError.getMessage()  +
@@ -278,21 +278,19 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
             }
 
             @Override
-            public void onCancelled(FirebaseError firebaseError) {
+            public void onCancelled(DatabaseError firebaseError) {
                 if(DEBUG) Log.d(TAG, "BMessageWrapper: ERROR OCURRED WITH FIREBASE");
             }
         });
 
     }
 
-
-
     public void initReadReceiptList(){
         model.initReaderList();
         ref().child(BDefines.Keys.BRead).setValue(model.getReaderHashMap());
     }
     
-    private Firebase ref(){
+    private DatabaseReference ref(){
         if (StringUtils.isNotEmpty(model.getEntityID()))
         {
             return FirebasePaths.threadMessagesRef(model.getBThreadOwner().getEntityID()).child(model.getEntityID());
