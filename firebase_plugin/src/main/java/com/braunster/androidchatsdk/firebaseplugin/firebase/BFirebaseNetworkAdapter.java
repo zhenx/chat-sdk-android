@@ -10,16 +10,10 @@ package com.braunster.androidchatsdk.firebaseplugin.firebase;
 import android.content.Context;
 import android.support.annotation.NonNull;
 
-import com.backendless.Backendless;
-import com.backendless.DeviceRegistration;
-import com.backendless.async.callback.AsyncCallback;
-import com.backendless.exceptions.BackendlessFault;
 import com.braunster.androidchatsdk.firebaseplugin.R;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.BBackendlessHandler;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.ChatSDKReceiver;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.geofire.BGeoFireManager;
-import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.BackendlessUtils;
-import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.PushUtils;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
