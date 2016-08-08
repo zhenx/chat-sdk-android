@@ -9,7 +9,8 @@ package com.braunster.androidchatsdk.firebaseplugin.firebase;
 
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BFirebaseDefines;
-import com.firebase.client.Firebase;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,17 +19,18 @@ import java.util.Map;
 
 import static com.braunster.chatsdk.network.BDefines.ServerUrl;
 
-public class FirebasePaths extends Firebase{
+public class FirebasePaths{
 
-    private StringBuilder builder = new StringBuilder();
+    private String url;
+    private static StringBuilder builder = new StringBuilder();
 
     private FirebasePaths(String url) {
-        super(url);
+        this.url = url;
     }
 
     /* Not sure if this the wanted implementation but its give the same result as the objective-C code.*/
-    /** @return The main firebase ref.*/
-    public static FirebasePaths firebaseRef(){
+    /** @return The main databse ref.*/
+    public static DatabaseReference firebaseRef(){
         if (StringUtils.isBlank(ServerUrl))
             throw new NullPointerException("Please set the server url in BDefines class");
 
@@ -36,80 +38,72 @@ public class FirebasePaths extends Firebase{
     }
 
     /** @return Firebase object for give url.*/
-    private static FirebasePaths fb (String url){
-        /* What the hell is initWithUrl stands for, Found the method in the BPath but not sure why and what.
-        * It's a constructor https://www.firebase.com/docs/ios-api/Classes/Firebase.html#//api/name/initWithUrl:*/
-        return new FirebasePaths(url);
-    }
-    /** @return Firebase object for the base path of firebase + the component given..*/
-    public FirebasePaths appendPathComponent(String component){
-        /* Im pretty sure that this is what you wanted*/
-        builder.setLength(0);
-        builder.append(this.toString()).append("/").append(component);
-        return fb(builder.toString().replace("%3A", ":").replace("%253A", ":"));
+    private static DatabaseReference fb (String url){
+        return FirebaseDatabase.getInstance().getReferenceFromUrl(url);
     }
 
     /* Users */
     /** @return The users main ref.*/
-    public static FirebasePaths userRef(){
-        return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BUsersPath);
+    public static DatabaseReference userRef(){
+        return firebaseRef().child(BFirebaseDefines.Path.BUsersPath);
     }
    
     /** @return The user ref for given id.*/
-    public static FirebasePaths userRef(String firebaseId){
-        return userRef().appendPathComponent(firebaseId);
+    public static DatabaseReference userRef(String firebaseId){
+        return userRef().child(firebaseId);
     }
 
     /** @return The user meta ref for given id.*/
-    public static FirebasePaths userMetaRef(String firebaseId){
-        return userRef().appendPathComponent(firebaseId).appendPathComponent(BFirebaseDefines.Path.BMetaPath);
+    public static DatabaseReference userMetaRef(String firebaseId){
+        DatabaseReference userMetaRef = userRef().child(firebaseId);
+        return userMetaRef.child(BFirebaseDefines.Path.BMetaPath);
     }
 
-    public static FirebasePaths userOnlineRef(String firebaseId){
-        return userRef(firebaseId).appendPathComponent(BFirebaseDefines.Path.BOnlinePath);
+    public static DatabaseReference userOnlineRef(String firebaseId){
+        return userRef(firebaseId).child(BFirebaseDefines.Path.BOnlinePath);
     }
 
-    public static FirebasePaths userFollowsRef(String firebaseId){
-        return userRef(firebaseId).appendPathComponent(BFirebaseDefines.Path.BFollows);
+    public static DatabaseReference userFollowsRef(String firebaseId){
+        return userRef(firebaseId).child(BFirebaseDefines.Path.BFollows);
     }
 
-    public static FirebasePaths userFollowersRef(String firebaseId){
-        return userRef(firebaseId).appendPathComponent(BFirebaseDefines.Path.BFollowers);
+    public static DatabaseReference userFollowersRef(String firebaseId){
+        return userRef(firebaseId).child(BFirebaseDefines.Path.BFollowers);
     }
 
     /* Threads */
     /** @return The thread main ref.*/
-    public static FirebasePaths threadRef(){
-        return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BThreadPath);
+    public static DatabaseReference threadRef(){
+        return firebaseRef().child(BFirebaseDefines.Path.BThreadPath);
     }
 
     /** @return The thread ref for given id.*/
-    public static FirebasePaths threadRef(String firebaseId){
-        return threadRef().appendPathComponent(firebaseId);
+    public static DatabaseReference threadRef(String firebaseId){
+        return threadRef().child(firebaseId);
     }
 
-    public static FirebasePaths threadMessagesRef(String firebaseId){
-        return threadRef(firebaseId).appendPathComponent(BFirebaseDefines.Path.BMessagesPath);
+    public static DatabaseReference threadMessagesRef(String firebaseId){
+        return threadRef(firebaseId).child(BFirebaseDefines.Path.BMessagesPath);
     }
     
-    public static FirebasePaths publicThreadsRef(){
-        return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BPublicThreadPath);
+    public static DatabaseReference publicThreadsRef(){
+        return firebaseRef().child(BFirebaseDefines.Path.BPublicThreadPath);
     }
 
     /* Locations */
     /** @return The location main ref.*/
-    public static FirebasePaths locationRef(){
-        return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BLocationsPath);
+    public static DatabaseReference locationRef(){
+        return firebaseRef().child(BFirebaseDefines.Path.BLocationsPath);
     }
 
     /** @return The location ref for given id.*/
-    public static FirebasePaths locationRef(String firebaseId){
-        return locationRef().appendPathComponent(firebaseId);
+    public static DatabaseReference locationRef(String firebaseId){
+        return locationRef().child(firebaseId);
     }
 
     /* Index */
-    public static FirebasePaths indexRef(){
-        return firebaseRef().appendPathComponent(BFirebaseDefines.Path.BIndexPath);
+    public static DatabaseReference indexRef(){
+        return firebaseRef().child(BFirebaseDefines.Path.BIndexPath);
     }
 
     public static Map<String, Object> getMap(String[] keys,  Object...values){
@@ -156,7 +150,7 @@ public class FirebasePaths extends Firebase{
             return BDefines.ProviderInt.Custom;
         }
 
-        throw new IllegalArgumentException("Np provider was found matching requested.");
+        throw new IllegalArgumentException("No provider was found matching requested. Provider: " + provider);
     }
 
     public static String providerToString(int provider){

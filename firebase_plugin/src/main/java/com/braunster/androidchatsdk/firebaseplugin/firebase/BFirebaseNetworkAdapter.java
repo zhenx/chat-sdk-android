@@ -8,18 +8,19 @@
 package com.braunster.androidchatsdk.firebaseplugin.firebase;
 
 import android.content.Context;
-import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
 
 import com.backendless.Backendless;
 import com.backendless.DeviceRegistration;
 import com.backendless.async.callback.AsyncCallback;
 import com.backendless.exceptions.BackendlessFault;
 import com.braunster.androidchatsdk.firebaseplugin.R;
+import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.BBackendlessHandler;
+import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.ChatSDKReceiver;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.geofire.BGeoFireManager;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.BackendlessUtils;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.PushUtils;
 import com.braunster.chatsdk.Utils.Debug;
-import com.braunster.chatsdk.Utils.helper.ChatSDKUiHelper;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
@@ -30,28 +31,36 @@ import com.braunster.chatsdk.network.BFacebookManager;
 import com.braunster.chatsdk.network.BFirebaseDefines;
 import com.braunster.chatsdk.network.TwitterManager;
 import com.braunster.chatsdk.object.BError;
-import com.braunster.chatsdk.object.SaveImageProgress;
-import com.firebase.client.AuthData;
-import com.firebase.client.DataSnapshot;
-import com.firebase.client.Firebase;
-import com.firebase.client.FirebaseError;
-import com.firebase.client.ValueEventListener;
-import com.parse.PushService;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.TwitterAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 import org.jdeferred.Deferred;
 import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
 import org.jdeferred.Promise;
 import org.jdeferred.impl.DeferredObject;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import timber.log.Timber;
 
+import static com.braunster.chatsdk.dao.entities.BMessageEntity.Type.IMAGE;
+import static com.braunster.chatsdk.dao.entities.BMessageEntity.Type.LOCATION;
 import static com.braunster.chatsdk.network.BDefines.BAccountType.Anonymous;
 import static com.braunster.chatsdk.network.BDefines.BAccountType.Custom;
 import static com.braunster.chatsdk.network.BDefines.BAccountType.Facebook;
@@ -67,11 +76,18 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
 
     public BFirebaseNetworkAdapter(Context context){
         super(context);
-        Firebase.setAndroidContext(context);
 
         // Adding the manager that will handle all the incoming events.
         FirebaseEventsManager eventManager = FirebaseEventsManager.getInstance();
         setEventManager(eventManager);
+
+        // Setting the upload handler
+        setUploadHandler(new BFirebaseUploadHandler());
+
+        // Setting the push handler
+        BBackendlessHandler backendlessPushHandler = new BBackendlessHandler();
+        backendlessPushHandler.setContext(context);
+        setPushHandler(backendlessPushHandler);
 
         // Adding the geofire manager
         BGeoFireManager geoFireManager = BGeoFireManager.sharedManager();
@@ -81,7 +97,8 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         /*Parse.initialize(context, context.getString(R.string.parse_app_id), context.getString(R.string.parse_client_key));
         ParseInstallation.getCurrentInstallation().saveInBackground();*/
 
-        Backendless.initApp(context, context.getString(R.string.backendless_app_id), context.getString(R.string.backendless_secret_key), context.getString(R.string.backendless_app_version));
+        backendlessPushHandler.initWithAppKey(context.getString(R.string.backendless_app_id),
+                            context.getString(R.string.backendless_secret_key), context.getString(R.string.backendless_app_version));
     }
 
 
@@ -156,105 +173,111 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
 
         authingStatus = AuthStatus.AUTH_WITH_MAP;
 
-        Firebase ref = FirebasePaths.firebaseRef();
-        
-        Firebase.AuthResultHandler authResultHandler = new Firebase.AuthResultHandler() {
+        OnCompleteListener<AuthResult> resultHandler = new OnCompleteListener<AuthResult>() {
             @Override
-            public void onAuthenticated(final AuthData authData) {
-                handleFAUser(authData).then(new DoneCallback<BUser>() {
-                    @Override
-                    public void onDone(BUser bUser) {
-                        resetAuth();
-                        deferred.resolve(authData);
-                        resetAuth();
-                    }
-                }, new FailCallback<BError>() {
-                    @Override
-                    public void onFail(BError bError) {
-                        resetAuth();
-                        deferred.reject(bError);
-                    }
-                });
-            }
-
-            @Override
-            public void onAuthenticationError(FirebaseError firebaseError) {
-                if (DEBUG) Timber.e("Error login in, Name: %s", firebaseError.getMessage());
-                resetAuth();
-                deferred.reject(getFirebaseError(firebaseError));
+            public void onComplete(@NonNull final Task<AuthResult> task) {
+                if(task.isComplete() && task.isSuccessful()) {
+                    handleFAUser(task.getResult().getUser()).then(new DoneCallback<BUser>() {
+                        @Override
+                        public void onDone(BUser bUser) {
+                            resetAuth();
+                            deferred.resolve(task.getResult().getUser());
+                            resetAuth();
+                        }
+                    }, new FailCallback<BError>() {
+                        @Override
+                        public void onFail(BError bError) {
+                            resetAuth();
+                            deferred.reject(bError);
+                        }
+                    });
+                } else {
+                    if (DEBUG) Timber.e("Error login in, Name: %s", task.getException().getMessage());
+                    resetAuth();
+                    deferred.reject(BError.getExceptionError(task.getException()));
+                }
             }
         };
+
+        AuthCredential credential = null;
 
         switch ((Integer)details.get(BDefines.Prefs.LoginTypeKey))
         {
             case Facebook:
 
                 if (DEBUG) Timber.d(TAG, "authing with fb, AccessToken: %s", BFacebookManager.userFacebookAccessToken);
-                ref.authWithOAuthToken("facebook", BFacebookManager.userFacebookAccessToken, authResultHandler);
+
+                AbstractNetworkAdapter.provider = BDefines.ProviderString.Facebook;
+                AbstractNetworkAdapter.token = BFacebookManager.userFacebookAccessToken;
+
+                credential = FacebookAuthProvider.getCredential(BFacebookManager.userFacebookAccessToken);
+                FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener(resultHandler);
+
                 break;
 
             case Twitter:
 
-                Long userId;
-                if (details.get(Keys.UserId) instanceof Integer)
-                    userId = new Long((Integer) details.get(Keys.UserId));
-                else userId = (Long) details.get(Keys.UserId);
+                if (DEBUG) Timber.d("authing with twitter, AccessToken: %s", TwitterManager.accessToken.getToken());
 
-                Map<String, String> options = new HashMap<String, String>();
+                AbstractNetworkAdapter.provider = BDefines.ProviderString.Twitter;
+                AbstractNetworkAdapter.token = TwitterManager.accessToken.getToken();
 
-                options.put("oauth_token", TwitterManager.accessToken.getToken());
-                options.put("oauth_token_secret", TwitterManager.accessToken.getSecret());
+                credential = TwitterAuthProvider.getCredential(TwitterManager.accessToken.getToken(), TwitterManager.accessToken.getSecret());
+                FirebaseAuth.getInstance().signInWithCredential(credential).addOnCompleteListener(resultHandler);
 
-                options.put("user_id", String.valueOf(userId));
-
-                if (DEBUG) Timber.d("authing with twitter. id: %s", userId);
-
-                ref.authWithOAuthToken("twitter", options, authResultHandler);
                 break;
 
             case Password:
-                ref.authWithPassword((String) details.get(BDefines.Prefs.LoginEmailKey),
-                        (String) details.get(BDefines.Prefs.LoginPasswordKey), authResultHandler);
+
+                AbstractNetworkAdapter.provider = BDefines.ProviderString.Password;
+
+                FirebaseAuth.getInstance().signInWithEmailAndPassword((String) details.get(BDefines.Prefs.LoginEmailKey),
+                        (String) details.get(BDefines.Prefs.LoginPasswordKey)).addOnCompleteListener(resultHandler);
                 break;
             case  Register:
-                ref.createUser((String) details.get(BDefines.Prefs.LoginEmailKey),
-                        (String) details.get(BDefines.Prefs.LoginPasswordKey), new Firebase.ResultHandler() {
+                FirebaseAuth.getInstance().createUserWithEmailAndPassword((String) details.get(BDefines.Prefs.LoginEmailKey),
+                        (String) details.get(BDefines.Prefs.LoginPasswordKey)).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                             @Override
-                            public void onSuccess() {
+                            public void onComplete(@NonNull Task<AuthResult> task) {
                                 
                                 // Resetting so we could auth again.
                                 resetAuth();
-                                
-                                //Authing the user after creating it.
-                                details.put(BDefines.Prefs.LoginTypeKey, Password);
-                                authenticateWithMap(details).done(new DoneCallback<Object>() {
-                                    @Override
-                                    public void onDone(Object o) {
-                                        deferred.resolve(o);
-                                    }
-                                }).fail(new FailCallback<BError>() {
-                                    @Override
-                                    public void onFail(BError bError) {
-                                        deferred.reject(bError);
-                                    }
-                                });
-                            }
 
-                            @Override
-                            public void onError(FirebaseError firebaseError) {
-                                if (DEBUG) Timber.e("Error login in, Name: %s", firebaseError.getMessage());
-                                resetAuth();
-                                deferred.reject(getFirebaseError(firebaseError));
+                                if(task.isSuccessful()) {
+                                    //Authing the user after creating it.
+                                    details.put(BDefines.Prefs.LoginTypeKey, Password);
+                                    authenticateWithMap(details).done(new DoneCallback<Object>() {
+                                        @Override
+                                        public void onDone(Object o) {
+                                            deferred.resolve(o);
+                                        }
+                                    }).fail(new FailCallback<BError>() {
+                                        @Override
+                                        public void onFail(BError bError) {
+                                            deferred.reject(bError);
+                                        }
+                                    });
+                                } else {
+                                    if (DEBUG) Timber.e("Error login in, Name: %s", task.getException().getMessage());
+                                    resetAuth();
+                                    deferred.reject(getFirebaseError(DatabaseError.fromException(task.getException())));
+                                }
                             }
                         });
                 break;
 
             case Anonymous:
-                ref.authAnonymously(authResultHandler);
+
+                AbstractNetworkAdapter.provider = BDefines.ProviderString.Anonymous;
+
+                FirebaseAuth.getInstance().signInAnonymously().addOnCompleteListener(resultHandler);
                 break;
 
             case Custom:
-                ref.authWithCustomToken((String) details.get(BDefines.Prefs.TokenKey), authResultHandler);
+
+                AbstractNetworkAdapter.provider = BDefines.ProviderString.Custom;
+
+                FirebaseAuth.getInstance().signInWithCustomToken((String) details.get(BDefines.Prefs.TokenKey)).addOnCompleteListener(resultHandler);
 
                 break;
 
@@ -269,28 +292,8 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         return deferred.promise();
     }
 
-    public abstract Promise<BUser, BError, Void> handleFAUser(final AuthData authData);
+    public abstract Promise<BUser, BError, Void> handleFAUser(final FirebaseUser authData);
 
-
-    @Override
-    public Promise<String[], BError, SaveImageProgress> saveBMessageWithImage(BMessage message) {
-        return BackendlessUtils.saveBMessageWithImage(message);
-    }
-
-    @Override
-    public Promise<String[], BError, SaveImageProgress> saveImageWithThumbnail(String path, int thumbnailSize) {
-        return BackendlessUtils.saveImageFileToBackendlessWithThumbnail(path, thumbnailSize);
-    }
-
-    @Override
-    public Promise<String, BError, SaveImageProgress> saveImage(String path) {
-        return BackendlessUtils.saveImageToBackendless(path);
-    }
-
-    @Override
-    public Promise<String, BError, SaveImageProgress> saveImage(Bitmap b, int size) {
-        return BackendlessUtils.saveImageToBackendless(b, size);
-    }
 
     @Override
     public String getServerURL() {
@@ -300,9 +303,6 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
     
     
     protected void pushForMessage(final BMessage message){
-        /*if (!parseEnabled())
-            return;*/
-
         if (!backendlessEnabled())
             return;
 
@@ -310,10 +310,9 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         if (message.getBThreadOwner().getTypeSafely() == BThread.Type.Private) {
 
             // Loading the message from firebase to get the timestamp from server.
-            FirebasePaths firebase = FirebasePaths.threadRef(
-                    message.getBThreadOwner().getEntityID())
-                    .appendPathComponent(BFirebaseDefines.Path.BMessagesPath)
-                    .appendPathComponent(message.getEntityID());
+            DatabaseReference firebase = FirebasePaths.threadRef(message.getBThreadOwner().getEntityID())
+                    .child(BFirebaseDefines.Path.BMessagesPath)
+                    .child(message.getEntityID());
 
             firebase.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -339,21 +338,21 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
                     BUser currentUser = currentUserModel();
                     List<BUser> users = new ArrayList<BUser>();
 
-                    for (BUser user : message.getBThreadOwner().getUsers()) {
-                        if (!user.equals(currentUser)) {
-                            // Timber.v(user.getEntityID() + ", " + user.getOnline().toString());
-                            // sends push notification regardless of receiver online status
-                            // TODO: add observer to online status
-                            // if (user.getOnline() == null || !user.getOnline())
+                    for (BUser user : message.getBThreadOwner().getUsers())
+                        if (!user.equals(currentUser))
+                            if (!user.equals(currentUser)) {
+                                // Timber.v(user.getEntityID() + ", " + user.getOnline().toString());
+                                // sends push notification regardless of receiver online status
+                                // TODO: add observer to online status
+                                // if (user.getOnline() == null || !user.getOnline())
                                 users.add(user);
-                        }
-                    }
+                            }
 
                     pushToUsers(message, users);
                 }
 
                 @Override
-                public void onCancelled(FirebaseError firebaseError) {
+                public void onCancelled(DatabaseError firebaseError) {
 
                 }
             });
@@ -362,9 +361,6 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
 
     protected void pushToUsers(BMessage message, List<BUser> users){
         if (DEBUG) Timber.v("pushToUsers");
-
-        /*if (!parseEnabled() || users.size() == 0)
-            return;*/
 
         if (!backendlessEnabled() || users.size() == 0)
             return;
@@ -377,117 +373,138 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         for (BUser user : users)
             channels.add(user.getPushChannel());
 
-        PushUtils.sendMessage(message, channels);
-    }
+        if (DEBUG) Timber.v("pushutils sendmessage");
+        String messageText = message.getText();
 
-    public void subscribeToPushChannel(final String channel){
-        /*if (!parseEnabled())
-            return;*/
+        if (message.getType() == LOCATION)
+            messageText = "Location Message";
+        else if (message.getType() == IMAGE)
+            messageText = "Picture Message";
 
-        if (!backendlessEnabled())
-            return;
+        String sender = message.getBUserSender().getMetaName();
+        String fullText = sender + " " + messageText;
 
-        Backendless.Messaging.registerDevice(context.getString(R.string.google_project_number), channel, new AsyncCallback<Void>() {
-            @Override
-            public void handleResponse(Void response) {
-                if(DEBUG) Timber.v("Device has been subscribed to channel " + channel);
-            }
-
-            @Override
-            public void handleFault(BackendlessFault fault) {
-                if(DEBUG) Timber.v("Device subscription failed. " + fault.getMessage());
-            }
-        });
-
-
-        /*try {
-            PushService.subscribe(context, channel, ChatSDKUiHelper.getInstance().mainActivity);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-
-            if (channel.contains("%3A"))
-                PushService.subscribe(context, channel.replace("%3A", "_"), ChatSDKUiHelper.getInstance().mainActivity);
-            else if (channel.contains("%253A"))
-                PushService.subscribe(context, channel.replace("%253A", "_"), ChatSDKUiHelper.getInstance().mainActivity);
-        }*/
-    }
-
-    public void unsubscribeToPushChannel(String channel){
-        /*if (!parseEnabled())
-            return;*/
-
-        if (!backendlessEnabled())
-            return;
-
-        // TODO: unsubscribe from push channel backendless
-        // http://support.backendless.com/topic/push-notification-unregister-from-a-specific-channel
-        DeviceRegistration devReg = null;
-
+        JSONObject data = new JSONObject();
         try {
-            devReg = Backendless.Messaging.getDeviceRegistration();
-        } catch (Exception e) {
+            data.put(BDefines.Keys.ACTION, ChatSDKReceiver.ACTION_MESSAGE);
+
+            data.put(BDefines.Keys.CONTENT, fullText);
+            data.put(BDefines.Keys.MESSAGE_ENTITY_ID, message.getEntityID());
+            data.put(BDefines.Keys.THREAD_ENTITY_ID, message.getBThreadOwner().getEntityID());
+            data.put(BDefines.Keys.MESSAGE_DATE, message.getDate().getTime());
+            data.put(BDefines.Keys.MESSAGE_SENDER_ENTITY_ID, message.getBUserSender().getEntityID());
+            data.put(BDefines.Keys.MESSAGE_SENDER_NAME, message.getBUserSender().getMetaName());
+            data.put(BDefines.Keys.MESSAGE_TYPE, message.getType());
+            data.put(BDefines.Keys.MESSAGE_PAYLOAD, message.getText());
+            //For iOS
+            data.put(BDefines.Keys.BADGE, BDefines.Keys.INCREMENT);
+            data.put(BDefines.Keys.ALERT, fullText);
+            // For making sound in iOS
+            data.put(BDefines.Keys.SOUND, BDefines.Keys.Default);
+        } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        if(devReg != null) {
-            Backendless.Messaging.unregisterDevice();
-        }
-
-        // PushService.unsubscribe(context, channel);
+        pushHandler.pushToChannels(channels, data);
     }
 
 
     /** Convert the firebase error to a {@link com.braunster.chatsdk.object.BError BError} object. */
-    public static BError getFirebaseError(FirebaseError error){
+    public static BError getFirebaseError(DatabaseError error){
         String errorMessage = "";
 
         int code = 0;
 
         switch (error.getCode())
         {
-            case FirebaseError.EMAIL_TAKEN:
+            /*case DatabaseError.EMAIL_TAKEN:
                 code = BError.Code.EMAIL_TAKEN;
                 errorMessage = "Email is taken.";
                 break;
 
-            case FirebaseError.INVALID_EMAIL:
+            case DatabaseError.INVALID_EMAIL:
                 code = BError.Code.INVALID_EMAIL;
                 errorMessage = "Invalid Email.";
                 break;
 
-            case FirebaseError.INVALID_PASSWORD:
+            case DatabaseError.INVALID_PASSWORD:
                 code = BError.Code.INVALID_PASSWORD;
                 errorMessage = "Invalid Password";
                 break;
 
-            case FirebaseError.USER_DOES_NOT_EXIST:
+            case DatabaseError.USER_DOES_NOT_EXIST:
                 code = BError.Code.USER_DOES_NOT_EXIST;
                 errorMessage = "Account not found.";
                 break;
 
-            case FirebaseError.NETWORK_ERROR:
+            case DatabaseError.INVALID_CREDENTIALS:
+                code = BError.Code.INVALID_CREDENTIALS;
+                errorMessage = "Invalid credentials.";
+                break;*/
+
+            case DatabaseError.NETWORK_ERROR:
                 code = BError.Code.NETWORK_ERROR;
                 errorMessage = "Network Error.";
                 break;
 
-            case FirebaseError.INVALID_CREDENTIALS:
-                code = BError.Code.INVALID_CREDENTIALS;
-                errorMessage = "Invalid credentials.";
-                break;
-
-            case FirebaseError.EXPIRED_TOKEN:
+            case DatabaseError.EXPIRED_TOKEN:
                 code = BError.Code.EXPIRED_TOKEN;
                 errorMessage = "Expired Token.";
                 break;
 
-            case FirebaseError.OPERATION_FAILED:
+            case DatabaseError.OPERATION_FAILED:
                 code = BError.Code.OPERATION_FAILED;
                 errorMessage = "Operation failed";
                 break;
 
-            case FirebaseError.PERMISSION_DENIED:
+            case DatabaseError.PERMISSION_DENIED:
                 code = BError.Code.PERMISSION_DENIED;
                 errorMessage = "Permission denied";
+                break;
+
+            case DatabaseError.DISCONNECTED:
+                code = BError.Code.DISCONNECTED;
+                errorMessage = "Disconnected.";
+                break;
+
+            case DatabaseError.INVALID_TOKEN:
+                code = BError.Code.INVALID_TOKEN;
+                errorMessage = "Invalid token.";
+                break;
+
+            case DatabaseError.MAX_RETRIES:
+                code = BError.Code.MAX_RETRIES;
+                errorMessage = "Max retries.";
+                break;
+
+            case DatabaseError.OVERRIDDEN_BY_SET:
+                code = BError.Code.OVERRIDDEN_BY_SET;
+                errorMessage = "Overridden by set.";
+                break;
+
+            case DatabaseError.UNAVAILABLE:
+                code = BError.Code.UNAVAILABLE;
+                errorMessage = "Unavailable.";
+                break;
+
+            case DatabaseError.UNKNOWN_ERROR:
+                code = BError.Code.UNKNOWN_ERROR;
+                errorMessage = "Unknown error.";
+                break;
+
+            case DatabaseError.USER_CODE_EXCEPTION:
+                code = BError.Code.USER_CODE_EXCEPTION;
+
+                String[] stacktrace = error.toException().getMessage().split(": ");
+
+                String[] message = stacktrace[2].split("\\.");
+
+                errorMessage = message[0];
+                break;
+
+            case DatabaseError.WRITE_CANCELED:
+                code = BError.Code.WRITE_CANCELED;
+                errorMessage = "Write canceled.";
                 break;
 
             default: errorMessage = "An Error Occurred.";

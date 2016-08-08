@@ -1,6 +1,7 @@
 package com.braunster.androidchatsdk.firebaseplugin.firebase.geofire;
 
 import android.content.Context;
+import android.database.DatabaseErrorHandler;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -15,7 +16,7 @@ import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.interfaces.GeoInterface;
 import com.braunster.chatsdk.network.AbstractGeoFireManager;
 import com.braunster.chatsdk.network.BNetworkManager;
-import com.firebase.client.FirebaseError;
+import com.google.firebase.database.DatabaseError;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -145,7 +146,7 @@ public class BGeoFireManager extends AbstractGeoFireManager implements LocationL
             }
 
             @Override
-            public void onGeoQueryError(FirebaseError error) {
+            public void onGeoQueryError(DatabaseError error) {
 
             }
         });

@@ -16,8 +16,10 @@ import android.os.Looper;
 
 import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.Utils.Debug;
+import com.braunster.chatsdk.Utils.ImageUtils;
 import com.braunster.chatsdk.Utils.sorter.ThreadsItemSorter;
 import com.braunster.chatsdk.Utils.sorter.ThreadsSorter;
+import com.braunster.chatsdk.Utils.volley.VolleyUtils;
 import com.braunster.chatsdk.adapter.abstracted.ChatSDKAbstractThreadsListAdapter;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
@@ -25,6 +27,8 @@ import com.braunster.chatsdk.dao.BThreadDao;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
+import com.braunster.chatsdk.interfaces.BPushHandler;
+import com.braunster.chatsdk.interfaces.BUploadHandler;
 import com.braunster.chatsdk.network.events.AbstractEventManager;
 import com.braunster.chatsdk.object.BError;
 import com.braunster.chatsdk.object.SaveImageProgress;
@@ -64,12 +68,18 @@ public abstract class AbstractNetworkAdapter {
 
     private boolean authenticated = false;
 
+    public static String provider = "";
+    public static String token = "";
+
     protected Context context;
 
     private AbstractEventManager eventManager;
 
+    public BUploadHandler uploadHandler;
+    public BPushHandler pushHandler;
+
     protected AbstractGeoFireManager geoFireManager;
-    
+
     public AbstractNetworkAdapter(Context context){
         this.context = context;
     }
@@ -205,7 +215,15 @@ public abstract class AbstractNetworkAdapter {
 
         DaoCore.updateEntity(message);
 
-        saveBMessageWithImage(message)
+        Bitmap image = ImageUtils.getCompressed(message.getResourcesPath());
+
+        Bitmap thumbnail = ImageUtils.getCompressed(message.getResourcesPath(),
+                BDefines.ImageProperties.MAX_IMAGE_THUMBNAIL_SIZE,
+                BDefines.ImageProperties.MAX_IMAGE_THUMBNAIL_SIZE);
+
+        message.setImageDimensions(ImageUtils.getDimensionAsString(image));
+
+        uploadImage(image, thumbnail)
                 .progress(new ProgressCallback<SaveImageProgress>() {
                     @Override
                     public void onProgress(SaveImageProgress saveImageProgress) {
@@ -221,7 +239,7 @@ public abstract class AbstractNetworkAdapter {
                                 + String.valueOf(location.longitude)
                                 + BDefines.DIVIDER + url[0]
                                 + BDefines.DIVIDER + url[1]
-                                + BDefines.DIVIDER + url[2]);
+                                + BDefines.DIVIDER + message.getImageDimensions());
 
                         DaoCore.updateEntity(message);
 
@@ -284,8 +302,20 @@ public abstract class AbstractNetworkAdapter {
         message.setResourcesPath(filePath);
 
         DaoCore.updateEntity(message);
-        
-        saveBMessageWithImage(message)
+
+        Bitmap image = ImageUtils.getCompressed(message.getResourcesPath());
+
+        Bitmap thumbnail = ImageUtils.getCompressed(message.getResourcesPath(),
+                BDefines.ImageProperties.MAX_IMAGE_THUMBNAIL_SIZE,
+                BDefines.ImageProperties.MAX_IMAGE_THUMBNAIL_SIZE);
+
+        message.setImageDimensions(ImageUtils.getDimensionAsString(image));
+
+        VolleyUtils.getBitmapCache().put(
+                VolleyUtils.BitmapCache.getCacheKey(message.getResourcesPath()),
+                thumbnail);
+
+        uploadImage(image, thumbnail)
                 .progress(new ProgressCallback<SaveImageProgress>() {
                     @Override
                     public void onProgress(SaveImageProgress saveImageProgress) {
@@ -295,7 +325,7 @@ public abstract class AbstractNetworkAdapter {
                 .done(new DoneCallback<String[]>() {
                     @Override
                     public void onDone(String[] url) {
-                        message.setText(url[0] + BDefines.DIVIDER + url[1] + BDefines.DIVIDER + url[2]);
+                        message.setText(url[0] + BDefines.DIVIDER + url[1] + BDefines.DIVIDER + message.getImageDimensions());
 
                         DaoCore.updateEntity(message);
 
@@ -561,25 +591,11 @@ public abstract class AbstractNetworkAdapter {
     public abstract Promise<BThread, BError, Void> pushThread(BThread thread);
 
 
-    public abstract Promise<String[], BError, SaveImageProgress> saveBMessageWithImage(BMessage message);
-    
-    public abstract Promise<String[], BError, SaveImageProgress> saveImageWithThumbnail(String path, int thumbnailSize);
-
-    public abstract Promise<String, BError, SaveImageProgress> saveImage(String path);
-
-    public abstract Promise<String, BError, SaveImageProgress> saveImage(Bitmap b, int size);
-
-
-
     public abstract String getServerURL();
 
 
 
 
-
-    /*public boolean parseEnabled(){
-        return StringUtils.isNotEmpty(context.getString(R.string.parse_app_id)) && StringUtils.isNotEmpty(context.getString(R.string.parse_client_key));
-    }*/
 
     public boolean backendlessEnabled(){
         return StringUtils.isNotEmpty(context.getString(R.string.backendless_app_id)) && StringUtils.isNotEmpty(context.getString(R.string.backendless_secret_key));
@@ -609,6 +625,22 @@ public abstract class AbstractNetworkAdapter {
 
     public AbstractEventManager getEventManager() {
         return eventManager;
+    }
+
+    public void setUploadHandler(BUploadHandler uploadHandler) {
+        this.uploadHandler = uploadHandler;
+    }
+
+    public BUploadHandler getUploadHandler() {
+        return uploadHandler;
+    }
+
+    public void setPushHandler(BPushHandler pushHandler) {
+        this.pushHandler = pushHandler;
+    }
+
+    public BPushHandler getPushHandler() {
+        return pushHandler;
     }
 
     public void setGeoFireManager(AbstractGeoFireManager geoFireManager) {
@@ -701,5 +733,79 @@ public abstract class AbstractNetworkAdapter {
         }
 
         return map;
+    }
+
+
+
+    public Promise<String[], BError, SaveImageProgress> uploadImage(final Bitmap image, final Bitmap thumbnail) {
+
+        if(image == null || thumbnail == null) return rejectMultiple();
+
+        final Deferred<String[], BError, SaveImageProgress> deferred = new DeferredObject<String[], BError, SaveImageProgress>();
+
+        final String[] urls = new String[2];
+
+        uploadHandler.uploadFile(ImageUtils.getImageByteArray(image), "image.jpg", "image/jpeg")
+            .done(new DoneCallback<String>() {
+                @Override
+                public void onDone(String url) {
+                    urls[0] = url;
+
+                    uploadHandler.uploadFile(ImageUtils.getImageByteArray(thumbnail), "thumbnail.jpg", "image/jpeg")
+                            .done(new DoneCallback<String>() {
+                                @Override
+                                public void onDone(String url) {
+                                    urls[1] = url;
+
+                                    deferred.resolve(urls);
+                                }
+                            })
+                            .fail(new FailCallback<BError>() {
+                                @Override
+                                public void onFail(BError error) {
+                                    deferred.reject(error);
+                                }
+                            });
+                }
+            })
+            .fail(new FailCallback<BError>() {
+                @Override
+                public void onFail(BError error) {
+                    deferred.reject(error);
+                }
+            });
+
+        return deferred.promise();
+    }
+
+    public Promise<String, BError, SaveImageProgress> uploadImageWithoutThumbnail(final Bitmap image) {
+
+        if(image == null) return reject();
+
+        final Deferred<String, BError, SaveImageProgress> deferred = new DeferredObject<String, BError, SaveImageProgress>();
+
+        uploadHandler.uploadFile(ImageUtils.getImageByteArray(image), "image.jpg", "image/jpeg")
+                .done(new DoneCallback<String>() {
+                    @Override
+                    public void onDone(String url) {
+                        deferred.resolve(url);
+                    }
+                })
+                .fail(new FailCallback<BError>() {
+                    @Override
+                    public void onFail(BError error) {
+                        deferred.reject(error);
+                    }
+                });
+
+        return deferred.promise();
+    }
+
+    private static Promise<String, BError, SaveImageProgress> reject(){
+        return new DeferredObject<String, BError, SaveImageProgress>().reject(new BError(BError.Code.NULL, "Image Is Null"));
+    }
+
+    private static Promise<String[], BError, SaveImageProgress> rejectMultiple(){
+        return new DeferredObject<String[], BError, SaveImageProgress>().reject(new BError(BError.Code.NULL, "Image Is Null"));
     }
 }
