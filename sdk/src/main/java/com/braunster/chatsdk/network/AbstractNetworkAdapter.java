@@ -121,7 +121,7 @@ public abstract class AbstractNetworkAdapter {
     
     public abstract Promise<BMessage, BError, BMessage> sendMessage(BMessage messages);
 
-    public abstract void updateUserReadReceipt(final BMessage message, final BMessage.ReadStatus status);
+    public abstract void updateUserReadReceipt(final BMessage message, final ReadReceipt.ReadStatus status);
 
 
     /**

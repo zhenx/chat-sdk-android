@@ -20,7 +20,6 @@ import com.android.volley.toolbox.ImageLoader;
 import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.Utils.asynctask.MakeThreadImage;
-import com.braunster.chatsdk.Utils.helper.ChatSDKChatHelper;
 import com.braunster.chatsdk.Utils.sorter.ThreadsItemSorter;
 import com.braunster.chatsdk.Utils.volley.VolleyUtils;
 import com.braunster.chatsdk.dao.BMessage;
@@ -28,7 +27,6 @@ import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
-import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BNetworkManager;
 
@@ -501,7 +499,7 @@ public abstract class ChatSDKAbstractThreadsListAdapter<E extends ChatSDKAbstrac
             List<BMessage> messages = thread.getMessagesWithOrder(DaoCore.ORDER_DESC);
             for(BMessage m: messages){
                 BNetworkManager.sharedManager().getNetworkAdapter()
-                        .updateUserReadReceipt(m, BMessageEntity.ReadStatus.Delivered);
+                        .updateUserReadReceipt(m, ReadReceipt.ReadStatus.Delivered);
             }
             // If no message create dummy message.
             if ( messages.size() == 0)

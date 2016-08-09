@@ -1,18 +1,18 @@
 package com.braunster.chatsdk.dao;
 
-import com.braunster.chatsdk.dao.entities.BMessageEntity;
-
-import java.security.Timestamp;
-import java.util.Date;
+import com.google.firebase.database.Exclude;
 
 /**
  * Created by kykrueger on 2016-06-21.
  */
 public class ReadReceipt {
+    public enum ReadStatus{
+        None, Delivered, Read
+    }
 
     private String userId;
     private Long date;
-    private BMessageEntity.ReadStatus enumStatus;
+    private ReadStatus readStatus;
     private Integer status;
 
     public ReadReceipt(){
@@ -22,49 +22,77 @@ public class ReadReceipt {
     public ReadReceipt(String userId) {
         this.userId = userId;
         this.date = null;
-        this.enumStatus = BMessageEntity.ReadStatus.None;
+        this.readStatus = ReadStatus.None;
     }
 
     public ReadReceipt(Long userId) {
         this.userId = userId.toString();
         this.date = null;
-        this.enumStatus = BMessageEntity.ReadStatus.None;
+        this.readStatus = ReadStatus.None;
     }
 
-    public ReadReceipt(String userId, BMessageEntity.ReadStatus status) {
+    public ReadReceipt(String userId, ReadStatus status) {
         this.userId = userId;
         this.date = null;
-        this.enumStatus = status;
+        this.readStatus = status;
     }
 
-    public ReadReceipt(Long userId, BMessageEntity.ReadStatus status) {
+    public ReadReceipt(Long userId, ReadStatus status) {
         this.userId = userId.toString();
         this.date = null;
-        this.enumStatus = status;
+        this.readStatus = status;
     }
 
-    public void setEnumStatus(BMessageEntity.ReadStatus textStatus) {
-        this.enumStatus = textStatus;
+    @Exclude
+    public void setReadStatusActual(ReadStatus textStatus) {
+        this.readStatus = textStatus;
         this.status = textStatus.ordinal(); // iOS app uses integers
     }
 
-    public BMessageEntity.ReadStatus getEnumStatus() {
-        if(this.enumStatus != null) return this.enumStatus;
+    @Exclude
+    public ReadStatus getReadStatusActual() {
+        if(this.readStatus != null) return this.readStatus;
         else if(this.status == null){
-            this.enumStatus = BMessageEntity.ReadStatus.None;
-            return this.enumStatus;
+            this.readStatus = ReadStatus.None;
+            return this.readStatus;
         } else{
             switch (this.status) {
                 case 0:
-                    this.enumStatus = BMessageEntity.ReadStatus.None;
+                    this.readStatus = ReadStatus.None;
                 case 1:
-                    this.enumStatus = BMessageEntity.ReadStatus.Delivered;
+                    this.readStatus = ReadStatus.Delivered;
                     break;
                 case 2:
-                    this.enumStatus = BMessageEntity.ReadStatus.Read;
+                    this.readStatus = ReadStatus.Read;
             }
         }
-        return this.enumStatus;
+        return this.readStatus;
+    }
+
+    /***
+     * Not recommended to call, Only here to satisfy an issue with firebase
+     * @return
+     */
+    public void setReadStatus(String textStatusStr) {
+        // Get enum from string fix for firebase removing jackson
+        if (textStatusStr == null) {
+            this.readStatus = null;
+        } else {
+            this.readStatus = ReadStatus.valueOf(textStatusStr);
+        }
+    }
+
+    /***
+     * Not recommended to call, Only here to satisfy an issue with firebase
+     * @return
+     */
+    public String getReadStatus() {
+        // Convert enum to string
+        if (readStatus == null) {
+            return null;
+        } else {
+            return readStatus.name();
+        }
     }
 
     // only exists to force Firebase to initialize this variable (iOS compat)
@@ -92,7 +120,7 @@ public class ReadReceipt {
             return true;
         if (this.date != compare.getDate())
             return false;
-        if (this.enumStatus != compare.getEnumStatus())
+        if (this.readStatus != compare.getReadStatusActual())
             return false;
 
         return true;
@@ -101,4 +129,5 @@ public class ReadReceipt {
     public int hashCode() {
         return userId.hashCode();
     }
+
 }

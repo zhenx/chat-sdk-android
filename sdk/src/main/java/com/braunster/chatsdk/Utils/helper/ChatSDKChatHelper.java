@@ -30,7 +30,6 @@ import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
-import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
@@ -49,7 +48,6 @@ import org.jdeferred.ProgressCallback;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -295,7 +293,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
             if (m.isMine()) continue; // prevents marking own messages as read
             m.setIsRead(true);
             DaoCore.updateEntity(m);
-            networkAdapter.updateUserReadReceipt(m, BMessageEntity.ReadStatus.Read);
+            networkAdapter.updateUserReadReceipt(m, ReadReceipt.ReadStatus.Read);
             readCount++;
         }
 
@@ -306,7 +304,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
         AbstractNetworkAdapter networkAdapter = BNetworkManager.sharedManager().getNetworkAdapter();
         message.setIsRead(true);
         DaoCore.updateEntity(message);
-        networkAdapter.updateUserReadReceipt(message,BMessageEntity.ReadStatus.Read);
+        networkAdapter.updateUserReadReceipt(message, ReadReceipt.ReadStatus.Read);
         readCount++;
     }
 

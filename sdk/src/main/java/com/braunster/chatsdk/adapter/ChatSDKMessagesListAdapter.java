@@ -15,7 +15,6 @@ import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.content.res.ResourcesCompat;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
 import android.view.Gravity;
@@ -45,6 +44,7 @@ import com.braunster.chatsdk.Utils.sorter.MessageSorter;
 import com.braunster.chatsdk.Utils.volley.VolleyUtils;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BUser;
+import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.network.BDefines;
@@ -58,7 +58,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
@@ -396,7 +395,7 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         // Set the time of the sending.
         holder.txtTime.setText(message.time);
         animateSides(holder.txtTime, sender, null);
-        BMessageEntity.ReadStatus status = null;
+        ReadReceipt.ReadStatus status = null;
         if(message.bMessage.isMine()) {
             status = message.bMessage.getCommonReadStatus();
             if(status != null) {

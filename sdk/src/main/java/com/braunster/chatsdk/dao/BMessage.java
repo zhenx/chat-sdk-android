@@ -365,9 +365,9 @@ public class BMessage extends BMessageEntity  {
         this.readerHashMap = newHashMap;
     }
     // used for initial creation of receipts
-    public void setUserReadReceipt(BUser reader, ReadStatus status){
+    public void setUserReadReceipt(BUser reader, ReadReceipt.ReadStatus status){
         ReadReceipt readReceipt = new ReadReceipt(reader.getEntityID());
-        readReceipt.setEnumStatus(status);
+        readReceipt.setReadStatusActual(status);
         readerHashMap.put(reader.getEntityID(), readReceipt);
     }
     // needed for easier deserialization of existing receipts
@@ -405,21 +405,21 @@ public class BMessage extends BMessageEntity  {
             if (getBUserSender().equals(reader)) continue;
             if (getReaderHashMap().containsKey(reader.getEntityID())) continue;
 
-            setUserReadReceipt(reader, ReadStatus.None);
+            setUserReadReceipt(reader, ReadReceipt.ReadStatus.None);
         }
     }
 
     //Returns the ReadStatus that is representative lowest common Read Status of all users in Map
-    public ReadStatus getCommonReadStatus(){
+    public ReadReceipt.ReadStatus getCommonReadStatus(){
         Boolean delivered = false;
         Boolean read = false;
 
         Set<String> keySet = readerHashMap.keySet();
         for (String key : keySet) {
             ReadReceipt readReceipt = (ReadReceipt) readerHashMap.get(key);
-            switch ((ReadStatus) readReceipt.getEnumStatus()) {
+            switch ((ReadReceipt.ReadStatus) readReceipt.getReadStatusActual()) {
                 case None:
-                    return ReadStatus.None;
+                    return ReadReceipt.ReadStatus.None;
                 case Delivered:
                     delivered = true;
                     break;
@@ -429,9 +429,9 @@ public class BMessage extends BMessageEntity  {
             }
         }
         if(delivered){
-            return ReadStatus.Delivered;
+            return ReadReceipt.ReadStatus.Delivered;
         } else if (read) {
-            return ReadStatus.Read;
+            return ReadReceipt.ReadStatus.Read;
         } else {
             logMessage = "Message has no readers";
             if(DEBUG) Log.d(TAG , logMessage);

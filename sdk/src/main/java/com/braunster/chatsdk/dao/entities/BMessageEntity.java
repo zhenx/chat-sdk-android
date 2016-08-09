@@ -38,16 +38,12 @@ public abstract class BMessageEntity extends Entity {
         public static final int Yes = 0, No = 1;
     }
 
-    public enum ReadStatus{
-        None, Delivered, Read
-    }
-
     public class ReaderHashMap<K,V> extends HashMap<String,ReadReceipt>{
 
-        public Boolean containsValue(ReadStatus cmpStatus){
+        public Boolean containsValue(ReadReceipt.ReadStatus cmpStatus){
             for(Entry<String, ReadReceipt> entry : this.entrySet()) {
                 ReadReceipt userStatus = entry.getValue();
-                ReadStatus status = userStatus.getEnumStatus();
+                ReadReceipt.ReadStatus status = userStatus.getReadStatusActual();
                 if(status == cmpStatus)
                     return true;
 
@@ -60,6 +56,8 @@ public abstract class BMessageEntity extends Entity {
     
     @MessageType
     public abstract Integer getType();
+
+
     
     public abstract String color();
 

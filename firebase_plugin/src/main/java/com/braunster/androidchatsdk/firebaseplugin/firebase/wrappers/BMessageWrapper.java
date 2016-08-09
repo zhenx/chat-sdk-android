@@ -7,9 +7,6 @@
 
 package com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers;
 
-import android.os.Handler;
-import android.os.Message;
-import android.provider.ContactsContract;
 import android.util.Log;
 
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseEventsManager;
@@ -18,8 +15,6 @@ import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
-import com.braunster.chatsdk.dao.entities.BMessageEntity;
-import com.braunster.chatsdk.interfaces.AppEvents;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.object.BError;
 import com.google.firebase.database.DataSnapshot;
@@ -187,7 +182,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
     }
 
     public void readReceiptsOn(){
-        if(getModel().getCommonReadStatus() != BMessageEntity.ReadStatus.Read){
+        if(getModel().getCommonReadStatus() != ReadReceipt.ReadStatus.Read){
             ref().child(BDefines.Keys.BRead).addChildEventListener(readReceiptListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -196,7 +191,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                     model.setUserReadReceipt(userId,receipt);
                     FirebaseEventsManager.getInstance().onMessageReceived(model);
 
-                    if(model.getCommonReadStatus() == BMessageEntity.ReadStatus.Read){
+                    if(model.getCommonReadStatus() == ReadReceipt.ReadStatus.Read){
                         readReceiptsOff();
                     }
                 }
@@ -208,7 +203,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                     model.setUserReadReceipt(userId,receipt);
                     FirebaseEventsManager.getInstance().onMessageReceived(model);
 
-                    if(model.getCommonReadStatus() == BMessageEntity.ReadStatus.Read){
+                    if(model.getCommonReadStatus() == ReadReceipt.ReadStatus.Read){
                         readReceiptsOff();
                     }
                 }
@@ -245,10 +240,10 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         ref().child(BDefines.Keys.BRead).removeEventListener(readReceiptListener);
     }
 
-    public void setReadReceipt(BMessageEntity.ReadStatus status){
+    public void setReadReceipt(ReadReceipt.ReadStatus status){
         final BUser currentUser = getNetworkAdapter().currentUserModel();
         final String receiptId = currentUser.getEntityID();
-        final BMessageEntity.ReadStatus newStatus = status;
+        final ReadReceipt.ReadStatus newStatus = status;
 
         if(DEBUG) {
             Log.d(TAG, "setReadReceipt: " +
@@ -263,7 +258,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                 ReadReceipt oldReceipt = dataSnapshot.child(receiptId).getValue(ReadReceipt.class);
                 // don't overwrite if exists and is already set to highest state
                 if(oldReceipt != null){
-                    if(oldReceipt.getEnumStatus() == BMessageEntity.ReadStatus.Read){
+                    if(oldReceipt.getReadStatusActual() == ReadReceipt.ReadStatus.Read){
                         if(DEBUG) {
                             Log.d(TAG, "BMessageWrapper: Message is already set to highest state" +
                                     "\n    Aborting to avoid overwrite");
