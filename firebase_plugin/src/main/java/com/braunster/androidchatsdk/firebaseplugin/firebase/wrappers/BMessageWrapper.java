@@ -265,6 +265,13 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                         }
                         return;
                     }
+                    if(oldReceipt.getReadStatusActual() == newStatus ){
+                        if(DEBUG) {
+                            Log.d(TAG, "BMessageWrapper: Message is already set to this state" +
+                                    "\n    Aborting to avoid overwrite");
+                        }
+                        return;
+                    }
                 }
                 if(DEBUG) Log.d(TAG, "BMessageWrapper: Writing new ReadReceipt to message");
                 model.setUserReadReceipt(currentUser,newStatus);
