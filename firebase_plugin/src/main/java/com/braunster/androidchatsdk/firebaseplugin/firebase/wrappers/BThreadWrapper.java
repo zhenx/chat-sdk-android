@@ -637,18 +637,25 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
     }
 
     /**
-     * When typing is on, a listener is active and updates a local HashMap of currently active users
-     * When changes are detected, the UI is notified through a message handler
+     * When typing is on, a listener is active and updates a local HashMap of typing users
+     * This hashmap has the current user removed from it to prevent notification about them typing.
+     * When changes are detected, the UI is notified through a message handler.
      */
     public void typingOn(){
-        DatabaseReference ref = FirebasePaths.threadRef(this.entityId).child(BFirebaseDefines.Path.BTyping);
+        DatabaseReference ref = FirebasePaths.threadRef(this.entityId)
+                .child(BFirebaseDefines.Path.BTyping);
         final String threadId = this.entityId;
+        final String currentUser = BNetworkManager.sharedManager().getNetworkAdapter()
+                .currentUserModel().getEntityID();
         ref.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String,String> usersTyping;
                 FirebaseEventsManager eventSender = FirebaseEventsManager.getInstance();
                 usersTyping = (Map<String,String>) dataSnapshot.getValue();
+                if (usersTyping != null) {
+                    usersTyping.remove(currentUser); //remove current user from typing indicator
+                }
                 eventSender.onThreadUsersTypingChanged(threadId, usersTyping);
             }
 
