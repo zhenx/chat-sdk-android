@@ -12,9 +12,11 @@ import android.util.Log;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseEventsManager;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebasePaths;
 import com.braunster.chatsdk.dao.BMessage;
+import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.ReadReceipt;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.object.BError;
 import com.google.firebase.database.DataSnapshot;
@@ -182,6 +184,10 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
     }
 
     public void readReceiptsOn(){
+        //do not turn on read receipts for public chats
+        if (getModel().getBThreadOwner().getType() == BThread.Type.Public){
+            return;
+        }
         if(getModel().getCommonReadStatus() != ReadReceipt.ReadStatus.Read){
             ref().child(BDefines.Keys.BRead).addChildEventListener(readReceiptListener = new ChildEventListener() {
                 @Override
@@ -245,11 +251,17 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         final String receiptId = currentUser.getEntityID();
         final ReadReceipt.ReadStatus newStatus = status;
 
+        // Do not set read-receipts for public chats!
+        if (model.getBThreadOwner().getType() == BThread.Type.Public) {
+            return;
+        }
+
         if(DEBUG) {
             Log.d(TAG, "setReadReceipt: " +
                     "\n    Querying ReadReceipt on message: " + model.getEntityID() +
                     "\n    for user: " + currentUser.getEntityID());
         }
+
         Query readReceiptQuery = ref().child(BDefines.Keys.BRead).orderByChild(receiptId);
         readReceiptQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
