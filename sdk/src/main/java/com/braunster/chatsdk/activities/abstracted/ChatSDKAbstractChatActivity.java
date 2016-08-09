@@ -465,49 +465,53 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
             }
         });
 
+        // TODO: modularize this implementation
         final AppEventListener threadUsersTypingListener = new AppEventListener(TypingListenerTag + thread.getId()) {
             @Override
             public boolean onThreadUsersTypingChanged(String threadId, Map<String,String> usersTyping){
-                String toDisplay = "";
+                String toDisplay = ""; // default empty
+                int numUsersInChat = thread.getUsers().size();
 
-                // set text to empty if no users are typing
-                if(usersTyping == null){
-                    txtUsersTyping.setText(toDisplay);
-                    usersTypingStr = toDisplay;
-                    return false;
-                } else if (usersTyping.size() == 1) { // if only one user is typing
-
-                    Collection<String> usersTypingCollection = usersTyping.values();
-                    for(String userTyping : usersTypingCollection){
+                // only add text when users are typing
+                if (usersTyping != null && usersTyping.size() > 0) {
+                    // 1 on 1 chat, other user is typing
+                    if (usersTyping.size() == 1 && numUsersInChat <= 2){
+                        toDisplay = "typing";
+                    }
+                    // multi-user chat, one user is typing
+                    else if (usersTyping.size() == 1 && numUsersInChat > 2) { //
+                        Collection<String> usersTypingCollection = usersTyping.values();
+                        for (String userTyping : usersTypingCollection) {
                             toDisplay = toDisplay + userTyping;
+                        }
+                        toDisplay = toDisplay + " is typing";
                     }
-                    toDisplay = toDisplay + " is typing";
-                    txtUsersTyping.setText(toDisplay);
-                    usersTypingStr = toDisplay;
-                    return false;
+                    // multi-user chat, multiple users typing
+                    else if (usersTyping.size() > 1 && numUsersInChat > 2){
+                        Collection<String> usersTypingCollection = usersTyping.values();
+                        int i = 0;
+                        for (String userTyping : usersTypingCollection) {
+                            if (toDisplay.length() + userTyping.length() + 5 >= 20) {
+                                toDisplay = toDisplay + ", . . .";
+                                break;
+                            }
+                            if (i == usersTypingCollection.size()) {
+                                toDisplay = toDisplay + ", and " + userTyping;
+                                continue;
+                            } else {
+                                toDisplay = toDisplay + ", " + userTyping;
+                            }
+                            i = i + 1;
+                            toDisplay = toDisplay + " are typing";
+                        }
+                    }
                 }
-
-                // otherwise concatenate all the typers and display
-                Collection<String> usersTypingCollection = usersTyping.values();
-                int i = 0;
-                for(String userTyping : usersTypingCollection){
-                    if(toDisplay.length() + userTyping.length() + 5 >= 20){
-                        toDisplay = toDisplay + ", . . .";
-                        break;
-                    }
-                    if(i == usersTypingCollection.size()) {
-                        toDisplay = toDisplay + ", and " + userTyping;
-                        continue;
-                    }else {
-                        toDisplay = toDisplay + ", " + userTyping;
-                    }
-                    i = i + 1;
-                }
-                toDisplay = toDisplay + " are typing";
+                // update UI
                 txtUsersTyping.setText(toDisplay);
                 usersTypingStr = toDisplay;
                 return false;
             }
+
         };
 
         new Thread(new Runnable() {
