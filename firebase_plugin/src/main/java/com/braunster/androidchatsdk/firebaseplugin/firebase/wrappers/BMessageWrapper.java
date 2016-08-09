@@ -254,23 +254,24 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         readReceiptQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(!dataSnapshot.hasChild(receiptId)) { return; }
-                ReadReceipt oldReceipt = dataSnapshot.child(receiptId).getValue(ReadReceipt.class);
-                // don't overwrite if exists and is already set to highest state
-                if(oldReceipt != null){
-                    if(oldReceipt.getReadStatusActual() == ReadReceipt.ReadStatus.Read){
-                        if(DEBUG) {
-                            Log.d(TAG, "BMessageWrapper: Message is already set to highest state" +
-                                    "\n    Aborting to avoid overwrite");
+                if(dataSnapshot.hasChild(receiptId)) {
+                    ReadReceipt oldReceipt = dataSnapshot.child(receiptId).getValue(ReadReceipt.class);
+                    // don't overwrite if exists and is already set to highest state
+                    if (oldReceipt != null) {
+                        if (oldReceipt.getReadStatusActual() == ReadReceipt.ReadStatus.Read) {
+                            if (DEBUG) {
+                                Log.d(TAG, "BMessageWrapper: Message is already set to highest state" +
+                                        "\n    Aborting to avoid overwrite");
+                            }
+                            return;
                         }
-                        return;
-                    }
-                    if(oldReceipt.getReadStatusActual() == newStatus ){
-                        if(DEBUG) {
-                            Log.d(TAG, "BMessageWrapper: Message is already set to this state" +
-                                    "\n    Aborting to avoid overwrite");
+                        if (oldReceipt.getReadStatusActual() == newStatus) {
+                            if (DEBUG) {
+                                Log.d(TAG, "BMessageWrapper: Message is already set to this state" +
+                                        "\n    Aborting to avoid overwrite");
+                            }
+                            return;
                         }
-                        return;
                     }
                 }
                 if(DEBUG) Log.d(TAG, "BMessageWrapper: Writing new ReadReceipt to message");
