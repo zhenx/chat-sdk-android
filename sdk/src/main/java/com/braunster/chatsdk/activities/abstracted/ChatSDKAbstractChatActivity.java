@@ -491,18 +491,19 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
                         Collection<String> usersTypingCollection = usersTyping.values();
                         int i = 0;
                         for (String userTyping : usersTypingCollection) {
-                            if (toDisplay.length() + userTyping.length() + 5 >= 20) {
+                            if (i == 0){
+                                toDisplay = userTyping;
+                            }else if (toDisplay.length() + userTyping.length() + 5 >= 30) {
                                 toDisplay = toDisplay + ", . . .";
                                 break;
                             }
                             if (i == usersTypingCollection.size()) {
-                                toDisplay = toDisplay + ", and " + userTyping;
-                                continue;
+                                toDisplay = toDisplay + ", and " + userTyping + " are typing";
+                                break;
                             } else {
                                 toDisplay = toDisplay + ", " + userTyping;
                             }
                             i = i + 1;
-                            toDisplay = toDisplay + " are typing";
                         }
                     }
                 }
