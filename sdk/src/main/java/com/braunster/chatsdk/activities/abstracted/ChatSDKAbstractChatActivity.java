@@ -563,6 +563,9 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     @Override
     protected void onPause() {
         super.onPause();
+
+        // User cannot be typing when activity is paused
+        chatSDKChatHelper.typingStatusChanged(false);
         getNetworkAdapter().getEventManager().removeEventByTag(MessageListenerTAG + thread.getId());
         getNetworkAdapter().getEventManager().removeEventByTag(ThreadListenerTAG + thread.getId());
     }
