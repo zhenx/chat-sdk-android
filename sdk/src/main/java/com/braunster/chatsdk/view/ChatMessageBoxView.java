@@ -28,6 +28,9 @@ import com.braunster.chatsdk.Utils.Utils;
 import com.braunster.chatsdk.network.BNetworkManager;
 import com.github.johnpersano.supertoasts.SuperToast;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class ChatMessageBoxView extends LinearLayout implements View.OnClickListener , View.OnKeyListener, TextView.OnEditorActionListener{
 
     public static final String TAG = ChatMessageBoxView.class.getSimpleName();
@@ -41,6 +44,13 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
     protected EditText etMessage;
     protected Boolean isTyping = false;
     protected PopupWindow optionPopup;
+
+    class UserTypingTimerTask extends TimerTask {
+        @Override
+        public void run(){
+            messageBoxTypingListener.typingStatusChanged(false);
+        }
+    }
 
     /** The alert toast that the app will use to alert the user.*/
     protected SuperToast alertToast;
@@ -85,7 +95,9 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
         etMessage.setOnEditorActionListener(this);
         etMessage.setOnKeyListener(this);
+
         etMessage.addTextChangedListener(new TextWatcher() {
+            Timer timer = new Timer();
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 return;
@@ -94,15 +106,15 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
 
-                if(!isTyping){ isTyping = true;} // if user was not typing they are now
-                else if(s.length() == 0){ isTyping = false;} // if text is empty they stopped
-                else {return;} // return since they have not changed their status
-                messageBoxTypingListener.typingStatusChanged(isTyping);
+                messageBoxTypingListener.typingStatusChanged(true);
+                timer.cancel();
+                timer = new Timer();
+                UserTypingTimerTask task = new UserTypingTimerTask();
+                timer.schedule(task,5000L);
             }
 
             @Override
             public void afterTextChanged(Editable s) {
-                return;
             }
         });
     }
