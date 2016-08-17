@@ -384,10 +384,12 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     protected void onStart() {
         super.onStart();
 
+        getNetworkAdapter().typingListenerOn(thread);
         if (thread != null && thread.getType() == BThread.Type.Public)
         {
             getNetworkAdapter().addUsersToThread(thread, getNetworkAdapter().currentUserModel());
         }
+
     }
 
     @Override
@@ -476,7 +478,12 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
                 if (usersTyping != null && usersTyping.size() > 0) {
                     // 1 on 1 chat, other user is typing
                     if (usersTyping.size() == 1 && numUsersInChat <= 2){
-                        toDisplay = "typing";
+                        if(thread.getType() == BThread.Type.Public){
+                            toDisplay = usersTyping.values().toArray()[0].toString() + " is typing";
+                        }else if(thread.getType() == BThread.Type.Private){
+                            toDisplay = "typing";
+                        }
+
                     }
                     // multi-user chat, one user is typing
                     else if (usersTyping.size() == 1 && numUsersInChat > 2) { //
@@ -579,6 +586,7 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     protected void onStop() {
         super.onStop();
 
+        getNetworkAdapter().typingListenerOff();
         if (chatSDKChatHelper.getReadCount() > 0)
             sendBroadcast(new Intent(ACTION_CHAT_CLOSED));
 

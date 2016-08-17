@@ -691,4 +691,7 @@ public abstract class AbstractNetworkAdapter {
     }
 
     public abstract void typingStatusChanged(BThread thread, Boolean isFocused);
+
+    public abstract void typingListenerOn(BThread thread);
+    public abstract void typingListenerOff();
 }

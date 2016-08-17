@@ -52,6 +52,9 @@ import timber.log.Timber;
 public class BThreadWrapper extends EntityWrapper<BThread> {
     
     public static final boolean DEBUG = Debug.BThread;
+
+    DatabaseReference typingRef;
+    ValueEventListener typingListener;
     
     public BThreadWrapper(BThread thread){
         this.model = thread;
@@ -74,7 +77,6 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         AndroidDeferredObject<BThread, Void, Void> androidDeferredObject = new AndroidDeferredObject<BThread, Void, Void>(deferred.promise(), AndroidExecutionScope.UI);
 
         getNetworkAdapter().getEventManager().threadOn(entityId, deferred);
-        typingOn();
         
         return androidDeferredObject.promise();
     }
@@ -85,7 +87,6 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
     public void off(){
         if (DEBUG) Timber.v("off");
         getNetworkAdapter().getEventManager().threadOff(entityId);
-        typingOff();
     }
 
     /**
@@ -641,13 +642,13 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
      * This hashmap has the current user removed from it to prevent notification about them typing.
      * When changes are detected, the UI is notified through a message handler.
      */
-    public void typingOn(){
-        DatabaseReference ref = FirebasePaths.threadRef(this.entityId)
+    public TypingListenerContainer typingOn(){
+        typingRef = FirebasePaths.threadRef(this.entityId)
                 .child(BFirebaseDefines.Path.BTyping);
         final String threadId = this.entityId;
         final String currentUser = BNetworkManager.sharedManager().getNetworkAdapter()
                 .currentUserModel().getEntityID();
-        ref.addValueEventListener(new ValueEventListener() {
+        typingListener = typingRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Map<String,String> usersTyping;
@@ -664,13 +665,21 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
 
             }
         });
+        return new TypingListenerContainer(typingRef,typingListener);
     }
 
-    /**
-     *  Turns off the typing listener
-     */
-    public void typingOff(){
+    public class TypingListenerContainer {
+        DatabaseReference ref;
+        ValueEventListener listener;
 
+        TypingListenerContainer(DatabaseReference ref, ValueEventListener listener){
+            this.ref = ref;
+            this.listener = listener;
+        }
+
+        public void stopListening(){
+            this.ref.removeEventListener(this.listener);
+        }
     }
 
     /**
