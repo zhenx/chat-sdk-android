@@ -7,6 +7,7 @@ import de.greenrobot.dao.DaoException;
 // KEEP INCLUDES - put your custom includes here
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
+import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.dao.entities.Entity;
 import com.braunster.chatsdk.network.BFirebaseDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
@@ -396,6 +397,8 @@ public class BMessage extends BMessageEntity  {
         BUser reader;
         int i;
 
+        // Do not init for public threads.
+        if(this.getBThreadOwner().getType() == BThread.Type.Public) return;
         readers = getBThreadUsers();
         if (readers.isEmpty()){ return; }
         // add all users who are not already in the chat

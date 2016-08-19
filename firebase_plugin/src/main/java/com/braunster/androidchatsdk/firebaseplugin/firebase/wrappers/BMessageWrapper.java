@@ -255,6 +255,8 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         if (model.getBThreadOwner().getType() == BThread.Type.Public) {
             return;
         }
+        // Do not set read receipts for yourself!
+        if (model.isMine()) return;
 
         if(DEBUG) {
             Log.d(TAG, "setReadReceipt: " +
