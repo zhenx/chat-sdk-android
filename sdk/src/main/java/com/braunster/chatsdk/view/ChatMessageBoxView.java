@@ -105,12 +105,13 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-                messageBoxTypingListener.typingStatusChanged(true);
-                timer.cancel();
-                timer = new Timer();
-                UserTypingTimerTask task = new UserTypingTimerTask();
-                timer.schedule(task,5000L);
+                if(s.length() != 0) {
+                    messageBoxTypingListener.typingStatusChanged(true);
+                    timer.cancel();
+                    timer = new Timer();
+                    UserTypingTimerTask task = new UserTypingTimerTask();
+                    timer.schedule(task, 5000L);
+                }
             }
 
             @Override
@@ -142,6 +143,7 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
         if (id == R.id.chat_sdk_btn_chat_send_message) {
             if (messageSendListener!=null)
+                messageBoxTypingListener.typingStatusChanged(false);
                 messageSendListener.onSendPressed(getMessageText());
         }
         else if (id == R.id.chat_sdk_btn_options){
@@ -183,6 +185,7 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_SEND)
+            messageBoxTypingListener.typingStatusChanged(false);
             if (messageSendListener!=null)
                 messageSendListener.onSendPressed(getMessageText());
 
