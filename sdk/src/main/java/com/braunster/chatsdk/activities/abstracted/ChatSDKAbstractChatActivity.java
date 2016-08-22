@@ -476,36 +476,27 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
 
                 // only add text when users are typing
                 if (usersTyping != null && usersTyping.size() > 0) {
-                    // 1 on 1 chat, other user is typing
-                    if (usersTyping.size() == 1 && numUsersInChat <= 2){
-                        if(thread.getType() == BThread.Type.Public){
-                            toDisplay = usersTyping.values().toArray()[0].toString() + " is typing";
-                        }else if(thread.getType() == BThread.Type.Private){
+                    // 1 on 1 private chat, other user is typing
+                    if (numUsersInChat <= 2 && thread.getType() == BThread.Type.Private){
                             toDisplay = "typing";
-                        }
-
                     }
-                    // multi-user chat, one user is typing
-                    else if (usersTyping.size() == 1 && numUsersInChat > 2) { //
-                        Collection<String> usersTypingCollection = usersTyping.values();
-                        for (String userTyping : usersTypingCollection) {
-                            toDisplay = toDisplay + userTyping;
-                        }
-                        toDisplay = toDisplay + " is typing";
+                    // public or private chat with one person typing
+                    else if(usersTyping.size() == 1){
+                        toDisplay = usersTyping.values().toArray()[0].toString() + "is typing";
                     }
-                    // multi-user chat, multiple users typing
-                    else if (usersTyping.size() > 1 && numUsersInChat > 2){
+                    // public or private chat multiple users typing
+                    else if (usersTyping.size() > 1){
                         Collection<String> usersTypingCollection = usersTyping.values();
                         int i = 0;
                         for (String userTyping : usersTypingCollection) {
                             if (i == 0){
                                 toDisplay = userTyping;
                             }else if (toDisplay.length() + userTyping.length() + 5 >= 30) {
-                                toDisplay = toDisplay + ", . . .";
+                                toDisplay = toDisplay + ", . . . typing";
                                 break;
                             }
-                            if (i == usersTypingCollection.size()) {
-                                toDisplay = toDisplay + ", and " + userTyping + " are typing";
+                            else if (i == usersTypingCollection.size()) {
+                                toDisplay = toDisplay + ", and " + userTyping + " typing";
                                 break;
                             } else {
                                 toDisplay = toDisplay + ", " + userTyping;
