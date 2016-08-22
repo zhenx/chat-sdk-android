@@ -111,6 +111,8 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
                     timer = new Timer();
                     UserTypingTimerTask task = new UserTypingTimerTask();
                     timer.schedule(task, 5000L);
+                }else{
+                    messageBoxTypingListener.typingStatusChanged(false);
                 }
             }
 
