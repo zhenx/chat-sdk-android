@@ -32,6 +32,7 @@ import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.fragments.ChatSDKContactsFragment;
 import com.braunster.chatsdk.fragments.abstracted.ChatSDKAbstractContactsFragment;
 import com.braunster.chatsdk.network.events.AppEventListener;
+import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.object.BError;
 import com.braunster.chatsdk.object.Cropper;
 import com.soundcloud.android.crop.Crop;
@@ -324,7 +325,7 @@ public class ChatSDKThreadDetailsActivity extends ChatSDKBaseThreadActivity {
                     if (b == null)
                     {
                         showAlertToast(getString(R.string.unable_to_save_file));
-                        if (DEBUG) Timber.e("Cant save image to parse file path is invalid: %s", 
+                        if (DEBUG) Timber.e("Cant save image to backendless file path is invalid: %s",
                                 getCacheDir().getPath() + image.getPath());
                         return;
                     }
@@ -332,7 +333,9 @@ public class ChatSDKThreadDetailsActivity extends ChatSDKBaseThreadActivity {
 
                 imageThread.setImageBitmap(b);
 
-                getNetworkAdapter().saveImage(image.getPath())
+                Bitmap imageBitmap = ImageUtils.getCompressed(image.getPath());
+
+                getNetworkAdapter().uploadImageWithoutThumbnail(imageBitmap)
                         .done(new DoneCallback<String>() {
                             @Override
                             public void onDone(String s) {
@@ -353,6 +356,8 @@ public class ChatSDKThreadDetailsActivity extends ChatSDKBaseThreadActivity {
                 showAlertToast(getString(R.string.unable_to_fetch_image));
             }
         }
+
+
     }
 
 

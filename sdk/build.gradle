@@ -47,7 +47,7 @@ dependencies {
     // Bug tracking
     compile files('libs/bugsense-3.6.1.jar')
 
-    compile ('com.google.android.gms:play-services-maps:6.5.87')
+    compile ('com.google.android.gms:play-services-maps:9.0.0')
             {
                 exclude group: 'com.google.android', module: 'support-v4'
             }
@@ -79,6 +79,8 @@ dependencies {
         exclude group: 'com.android.support', module: 'support-v4'
     }
 
+    // Backendless
+    compile('com.backendless:backendless:3.0.11')
 
     compile 'com.android.support:support-annotations:22.2.0'
 

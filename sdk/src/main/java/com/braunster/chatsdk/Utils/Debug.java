@@ -18,6 +18,8 @@ public class Debug {
     public static final boolean EventManager = false;
     public static final boolean BPath = false;
     public static final boolean BFirebaseNetworkAdapter = true;
+    public static final boolean BFirebaseUploadHandler = true;
+    public static final boolean BBackendlessPushHandler = true;
 
     /*Fragments*/
     private static final boolean FRAGMENTS = false;
@@ -68,7 +70,7 @@ public class Debug {
     public static final boolean UserToFollowAddedListener = false;
     
     /*Receiver*/
-    public static final boolean ChatSDKReceiver = false;
+    public static final boolean ChatSDKReceiver = true;
 
 
 
