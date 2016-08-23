@@ -28,10 +28,10 @@ public class BDefines {
     public static String BAppVersion = BuildConfig.VERSION_NAME;
 
     /** The server url that is used to do all the API calls.*/
-    public static String ServerUrl = "https://chatcatv3test.firebaseio.com/" + BRootPath;
+    public static String ServerUrl = "https://chat-sdk-v3.firebaseio.com/ " + BRootPath;
 
     /** The url that is used for the file uploads.*/
-    public static String FirebaseStoragePath = "gs://chatcatv3test.appspot.com";
+    public static String FirebaseStoragePath = "gs://chat-sdk-v3.appspot.com";
 
     /**
      * The name of the app image directory that will be seen in the phone image galley
