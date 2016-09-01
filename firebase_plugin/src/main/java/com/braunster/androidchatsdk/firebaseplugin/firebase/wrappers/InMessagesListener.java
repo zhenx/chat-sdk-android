@@ -16,7 +16,7 @@ import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseGeneralEvent
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.google.firebase.database.DataSnapshot;
 
@@ -105,12 +105,11 @@ public class InMessagesListener extends FirebaseGeneralEvent {
                     wrapper.model.setBThread(thread);
 
                     if(wrapper.getModel().isMine()){
-                        wrapper.initReadReceiptList();
-                        if(wrapper.getModel().getCommonReadStatus() != ReadReceipt.ReadStatus.Read){
+                        if(wrapper.getModel().getCommonReadStatus() != BMessageReceiptEntity.ReadStatus.read){
                             wrapper.readReceiptsOn();
                         }
                     }else {
-                        wrapper.setReadReceipt(ReadReceipt.ReadStatus.Delivered);
+                        wrapper.setReadReceipt(BMessageReceiptEntity.ReadStatus.delivered);
                     }
                     wrapper.setDelivered(BMessage.Delivered.Yes);
                     wrapper.model.setBThread(thread);

@@ -13,7 +13,7 @@ public class FirebaseReadReceipt {
         // empty default constructor for Firebase deserialization
     }
 
-    public FirebaseReadReceipt(String userId, Long date, Integer status;){
+    public FirebaseReadReceipt(String userId, Long date, Integer status){
         this.userId = userId;
         this.date = date;
         this.status = status;

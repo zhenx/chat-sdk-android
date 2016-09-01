@@ -11,12 +11,14 @@ import android.util.Log;
 
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseEventsManager;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebasePaths;
+import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseReadReceipt;
 import com.braunster.chatsdk.dao.BMessage;
+import com.braunster.chatsdk.dao.BMessageReceipt;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.BUserDao;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.dao.core.DaoCore;
-import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.object.BError;
 import com.google.firebase.database.DataSnapshot;
@@ -24,8 +26,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.Query;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jdeferred.Deferred;
@@ -34,6 +34,7 @@ import org.jdeferred.impl.DeferredObject;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import timber.log.Timber;
@@ -78,6 +79,8 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         values.put(BDefines.Keys.BDate, ServerValue.TIMESTAMP);
         values.put(BDefines.Keys.BType, model.getType());
         values.put(BDefines.Keys.BUserFirebaseId, model.getBUserSender().getEntityID());
+        values.put(BDefines.Keys.BRead, initReadReceiptList());
+
 
         return values;
     }
@@ -124,10 +127,10 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
             Map<String,Object> readerHashMap = new HashMap<String,Object>();
             // loop through children of 'read' and rebuild the ReadReceipts hashmap
             for(DataSnapshot snap : snapshot.child(BDefines.Keys.BRead).getChildren()){
-                ReadReceipt receipt = snap.getValue(ReadReceipt.class);
-                readerHashMap.put(snap.getKey(),receipt);
+                FirebaseReadReceipt receipt = snap.getValue(FirebaseReadReceipt.class);
+                BUser user = DaoCore.fetchOrCreateEntityWithEntityID(BUser.class, snap.getKey());
+                model.setUserReadReceipt(user, receipt.getStatus());
             }
-            model.setReaderHashMap(readerHashMap);
         }
                 
         // Updating the db
@@ -185,19 +188,23 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
 
     public void readReceiptsOn(){
         //do not turn on read receipts for public chats
-        if (getModel().getBThreadOwner().getType() == BThread.Type.Public){
+        if (getModel().getBThread().getType() == BThread.Type.Public){
             return;
         }
-        if(getModel().getCommonReadStatus() != ReadReceipt.ReadStatus.Read){
+        if(getModel().getCommonReadStatus() != BMessageReceiptEntity.ReadStatus.read){
             ref().child(BDefines.Keys.BRead).addChildEventListener(readReceiptListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                     String userId = dataSnapshot.getKey();
-                    ReadReceipt receipt = dataSnapshot.getValue(ReadReceipt.class);
-                    model.setUserReadReceipt(userId,receipt);
+                    FirebaseReadReceipt receipt = dataSnapshot.getValue(FirebaseReadReceipt.class);
+
+                    // get user from dao
+                    BUser reader = DaoCore.fetchEntityWithProperty(BUser.class,
+                            BUserDao.Properties.EntityID, userId);
+                    model.setUserReadReceipt(reader, receipt.getStatus());
                     FirebaseEventsManager.getInstance().onMessageReceived(model);
 
-                    if(model.getCommonReadStatus() == ReadReceipt.ReadStatus.Read){
+                    if(model.getCommonReadStatus() == BMessageReceiptEntity.ReadStatus.read){
                         readReceiptsOff();
                     }
                 }
@@ -205,11 +212,15 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                 @Override
                 public void onChildChanged(DataSnapshot dataSnapshot, String s) {
                     String userId = dataSnapshot.getKey();
-                    ReadReceipt receipt = dataSnapshot.getValue(ReadReceipt.class);
-                    model.setUserReadReceipt(userId,receipt);
+                    FirebaseReadReceipt receipt = dataSnapshot.getValue(FirebaseReadReceipt.class);
+
+                    // get user from dao
+                    BUser reader = DaoCore.fetchEntityWithProperty(BUser.class,
+                            BUserDao.Properties.EntityID, userId);
+                    model.setUserReadReceipt(reader, receipt.getStatus());
                     FirebaseEventsManager.getInstance().onMessageReceived(model);
 
-                    if(model.getCommonReadStatus() == ReadReceipt.ReadStatus.Read){
+                    if(model.getCommonReadStatus() == BMessageReceiptEntity.ReadStatus.read){
                         readReceiptsOff();
                     }
                 }
@@ -246,65 +257,46 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         ref().child(BDefines.Keys.BRead).removeEventListener(readReceiptListener);
     }
 
-    public void setReadReceipt(ReadReceipt.ReadStatus status){
+    public void setReadReceipt(int bMessageReceiptStatus){
+        FirebaseReadReceipt firebaseReadReceipt;
         final BUser currentUser = getNetworkAdapter().currentUserModel();
         final String receiptId = currentUser.getEntityID();
-        final ReadReceipt.ReadStatus newStatus = status;
 
         // Do not set read-receipts for public chats!
-        if (model.getBThreadOwner().getType() == BThread.Type.Public) {
+        if (model.getBThread().getType() == BThread.Type.Public) {
             return;
         }
-        // Do not set read receipts for yourself!
+        // Do not set read receipts for your own messages!
         if (model.isMine()) return;
-
-        if(DEBUG) {
-            Log.d(TAG, "setReadReceipt: " +
-                    "\n    Querying ReadReceipt on message: " + model.getEntityID() +
-                    "\n    for user: " + currentUser.getEntityID());
+        // Do not set read receipt if the message status doesn't need to be updated
+        if(!model.setUserReadReceipt(currentUser, bMessageReceiptStatus)){
+            if (DEBUG) {
+                Log.d(TAG, "BMessageWrapper: Message is already set to highest state" +
+                        "\n    Aborting to avoid overwrite");
+            }
+            return;
         }
 
-        Query readReceiptQuery = ref().child(BDefines.Keys.BRead).orderByChild(receiptId);
-        readReceiptQuery.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if(dataSnapshot.hasChild(receiptId)) {
-                    ReadReceipt oldReceipt = dataSnapshot.child(receiptId).getValue(ReadReceipt.class);
-                    // don't overwrite if exists and is already set to highest state
-                    if (oldReceipt != null) {
-                        if (oldReceipt.getReadStatusActual() == ReadReceipt.ReadStatus.Read) {
-                            if (DEBUG) {
-                                Log.d(TAG, "BMessageWrapper: Message is already set to highest state" +
-                                        "\n    Aborting to avoid overwrite");
-                            }
-                            return;
-                        }
-                        if (oldReceipt.getReadStatusActual() == newStatus) {
-                            if (DEBUG) {
-                                Log.d(TAG, "BMessageWrapper: Message is already set to this state" +
-                                        "\n    Aborting to avoid overwrite");
-                            }
-                            return;
-                        }
-                    }
-                }
-                if(DEBUG) Log.d(TAG, "BMessageWrapper: Writing new ReadReceipt to message");
-                model.setUserReadReceipt(currentUser,newStatus);
-                ReadReceipt newReceipt = model.getUserReadReceipt(currentUser);
-                ref().child(BDefines.Keys.BRead).child(receiptId).setValue(newReceipt);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError firebaseError) {
-                if(DEBUG) Log.d(TAG, "BMessageWrapper: ERROR OCURRED WITH FIREBASE");
-            }
-        });
+        // Update the receipt on firebase
+        BMessageReceipt bMessageReceipt = model.getUserReadReceipt(currentUser);
+        firebaseReadReceipt = new FirebaseReadReceipt(bMessageReceipt.getReader().getEntityID(),
+                null, bMessageReceipt.getReadStatus());
+        ref().child(BDefines.Keys.BRead).child(bMessageReceipt.getReader().getEntityID())
+                .setValue(firebaseReadReceipt);
 
     }
 
-    public void initReadReceiptList(){
-        model.initReaderList();
-        ref().child(BDefines.Keys.BRead).setValue(model.getReaderHashMap());
+    private Map<String,FirebaseReadReceipt> initReadReceiptList(){
+        FirebaseReadReceipt firebaseReadReceipt;
+        Map<String,FirebaseReadReceipt> firebaseReadReceipts= new HashMap<>();
+        model.initBMessageReceipts();
+        List<BMessageReceipt> bMessageReceipts = model.getBMessageReceiptList();
+        for(BMessageReceipt bMessageReceipt : bMessageReceipts){
+            firebaseReadReceipt = new FirebaseReadReceipt(bMessageReceipt.getReader().getEntityID(),
+                    null, bMessageReceipt.getReadStatus());
+            firebaseReadReceipts.put(firebaseReadReceipt.getUserId(),firebaseReadReceipt);
+        }
+        return firebaseReadReceipts;
     }
     
     private DatabaseReference ref(){

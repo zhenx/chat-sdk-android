@@ -146,6 +146,32 @@ public class Generator {
         ToOne messageToOneSender = message.addToOne(user, messagePropSender);
         messageToOneSender.setName("BUserSender");
 
+        // Read Receipts (messageReceipt entity links messages and users)
+        // It also adds a field to store the status for that given user with respect to this message
+        {
+            // This entity is necessary as we should avoid modifying the other data structures for
+            // the implementation of a loosely coupled read_receipts feature!
+            Entity messageReceipt = schema.addEntity(EntityProperties.BMessageReceipt);
+            messageReceipt.addIdProperty();
+            messageReceipt.addIntProperty(EntityProperties.ReadStatus);
+
+            // add toOne relationship to each readReceipt (just as efficient as adding only the ID)
+            Property reader = messageReceipt
+                    .addLongProperty(EntityProperties.Reader + "Id").getProperty();
+            messageReceipt.addToOne(user, reader).setName(EntityProperties.Reader);
+
+            // add toOne relationship to the message the readReceipt is connected to
+            Property bMessageProp = messageReceipt
+                    .addLongProperty(EntityProperties.BMessage + "Id").getProperty();
+            messageReceipt.addToOne(message, bMessageProp).setName(EntityProperties.BMessage);
+
+            // add toMany relationship to messages (one for each reader)
+            Property messageReceipts = message
+                    .addLongProperty(EntityProperties.MessageReceipts + "Id").getProperty();
+            message.addToMany(messageReceipt, messageReceipts);
+
+            follower.setSuperclass(EntityProperties.BMessageReceipt+"Entity");
+        }
         return messageId;
     }
     //endregion

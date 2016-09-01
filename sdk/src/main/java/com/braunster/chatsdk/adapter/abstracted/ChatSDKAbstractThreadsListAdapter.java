@@ -25,7 +25,7 @@ import com.braunster.chatsdk.Utils.volley.VolleyUtils;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BNetworkManager;
@@ -499,7 +499,7 @@ public abstract class ChatSDKAbstractThreadsListAdapter<E extends ChatSDKAbstrac
             List<BMessage> messages = thread.getMessagesWithOrder(DaoCore.ORDER_DESC);
             for(BMessage m: messages){
                 BNetworkManager.sharedManager().getNetworkAdapter()
-                        .updateUserReadReceipt(m, ReadReceipt.ReadStatus.Delivered);
+                        .updateUserReadReceipt(m, BMessageReceiptEntity.ReadStatus.delivered);
             }
             // If no message create dummy message.
             if ( messages.size() == 0)
@@ -523,7 +523,7 @@ public abstract class ChatSDKAbstractThreadsListAdapter<E extends ChatSDKAbstrac
                 for (BMessage m : messages)
                 {
                     if (m.isMine()) continue; // prevents marking own messages as read
-//                    networkAdapter.updateUserReadReceipt(m,BMessageEntity.ReadStatus.Delivered);
+//                    networkAdapter.updateUserReadReceipt(m,BMessageEntity.ReadStatus.delivered);
                     m.setIsRead(true);
                     DaoCore.updateEntity(m);
                 }

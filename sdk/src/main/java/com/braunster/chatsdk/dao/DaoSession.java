@@ -13,6 +13,7 @@ import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.BLinkedAccount;
 import com.braunster.chatsdk.dao.BLinkedContact;
 import com.braunster.chatsdk.dao.BMessage;
+import com.braunster.chatsdk.dao.BMessageReceipt;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BLinkData;
 import com.braunster.chatsdk.dao.BFollower;
@@ -21,6 +22,7 @@ import com.braunster.chatsdk.dao.BUserDao;
 import com.braunster.chatsdk.dao.BLinkedAccountDao;
 import com.braunster.chatsdk.dao.BLinkedContactDao;
 import com.braunster.chatsdk.dao.BMessageDao;
+import com.braunster.chatsdk.dao.BMessageReceiptDao;
 import com.braunster.chatsdk.dao.BThreadDao;
 import com.braunster.chatsdk.dao.BLinkDataDao;
 import com.braunster.chatsdk.dao.BFollowerDao;
@@ -38,6 +40,7 @@ public class DaoSession extends AbstractDaoSession {
     private final DaoConfig bLinkedAccountDaoConfig;
     private final DaoConfig bLinkedContactDaoConfig;
     private final DaoConfig bMessageDaoConfig;
+    private final DaoConfig bMessageReceiptDaoConfig;
     private final DaoConfig bThreadDaoConfig;
     private final DaoConfig bLinkDataDaoConfig;
     private final DaoConfig bFollowerDaoConfig;
@@ -46,6 +49,7 @@ public class DaoSession extends AbstractDaoSession {
     private final BLinkedAccountDao bLinkedAccountDao;
     private final BLinkedContactDao bLinkedContactDao;
     private final BMessageDao bMessageDao;
+    private final BMessageReceiptDao bMessageReceiptDao;
     private final BThreadDao bThreadDao;
     private final BLinkDataDao bLinkDataDao;
     private final BFollowerDao bFollowerDao;
@@ -66,6 +70,9 @@ public class DaoSession extends AbstractDaoSession {
         bMessageDaoConfig = daoConfigMap.get(BMessageDao.class).clone();
         bMessageDaoConfig.initIdentityScope(type);
 
+        bMessageReceiptDaoConfig = daoConfigMap.get(BMessageReceiptDao.class).clone();
+        bMessageReceiptDaoConfig.initIdentityScope(type);
+
         bThreadDaoConfig = daoConfigMap.get(BThreadDao.class).clone();
         bThreadDaoConfig.initIdentityScope(type);
 
@@ -79,6 +86,7 @@ public class DaoSession extends AbstractDaoSession {
         bLinkedAccountDao = new BLinkedAccountDao(bLinkedAccountDaoConfig, this);
         bLinkedContactDao = new BLinkedContactDao(bLinkedContactDaoConfig, this);
         bMessageDao = new BMessageDao(bMessageDaoConfig, this);
+        bMessageReceiptDao = new BMessageReceiptDao(bMessageReceiptDaoConfig, this);
         bThreadDao = new BThreadDao(bThreadDaoConfig, this);
         bLinkDataDao = new BLinkDataDao(bLinkDataDaoConfig, this);
         bFollowerDao = new BFollowerDao(bFollowerDaoConfig, this);
@@ -87,6 +95,7 @@ public class DaoSession extends AbstractDaoSession {
         registerDao(BLinkedAccount.class, bLinkedAccountDao);
         registerDao(BLinkedContact.class, bLinkedContactDao);
         registerDao(BMessage.class, bMessageDao);
+        registerDao(BMessageReceipt.class, bMessageReceiptDao);
         registerDao(BThread.class, bThreadDao);
         registerDao(BLinkData.class, bLinkDataDao);
         registerDao(BFollower.class, bFollowerDao);
@@ -97,6 +106,7 @@ public class DaoSession extends AbstractDaoSession {
         bLinkedAccountDaoConfig.getIdentityScope().clear();
         bLinkedContactDaoConfig.getIdentityScope().clear();
         bMessageDaoConfig.getIdentityScope().clear();
+        bMessageReceiptDaoConfig.getIdentityScope().clear();
         bThreadDaoConfig.getIdentityScope().clear();
         bLinkDataDaoConfig.getIdentityScope().clear();
         bFollowerDaoConfig.getIdentityScope().clear();
@@ -116,6 +126,10 @@ public class DaoSession extends AbstractDaoSession {
 
     public BMessageDao getBMessageDao() {
         return bMessageDao;
+    }
+
+    public BMessageReceiptDao getBMessageReceiptDao() {
+        return bMessageReceiptDao;
     }
 
     public BThreadDao getBThreadDao() {

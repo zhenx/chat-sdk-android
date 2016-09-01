@@ -16,7 +16,7 @@ import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BMessageDao;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.network.BDefines;
@@ -351,7 +351,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
                             
                             DaoCore.updateEntity(msg.model);
 
-                            msg.setReadReceipt(ReadReceipt.ReadStatus.Delivered);
+                            msg.setReadReceipt(BMessageReceiptEntity.ReadStatus.delivered);
                             
                             msgs.add(msg.model);
                         }

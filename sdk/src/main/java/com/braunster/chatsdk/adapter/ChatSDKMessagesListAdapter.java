@@ -44,7 +44,7 @@ import com.braunster.chatsdk.Utils.sorter.MessageSorter;
 import com.braunster.chatsdk.Utils.volley.VolleyUtils;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BUser;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.network.BDefines;
@@ -64,6 +64,8 @@ import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import timber.log.Timber;
+
+import static com.braunster.chatsdk.dao.entities.BMessageReceiptEntity.ReadStatus.read;
 
 /**
  * Created by itzik on 6/5/2014.
@@ -395,26 +397,25 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         // Set the time of the sending.
         holder.txtTime.setText(message.time);
         animateSides(holder.txtTime, sender, null);
-        ReadReceipt.ReadStatus status = null;
+        int status;
         if(message.bMessage.isMine()) {
             status = message.bMessage.getCommonReadStatus();
-            if(status != null) {
-                Drawable readStatusImg;
-                switch (status) {
-                    case Delivered:
-                        readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext(),R.drawable.ic_msg_delivered);
-                        break;
-                    case Read:
-                        readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext(),R.drawable.ic_msg_read);
-                        break;
-                    case None:
-                    default:
-                        readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext(),R.drawable.ic_msg_none);
-                }
-                holder.readStatus.setImageDrawable(readStatusImg);
-            }else{
-                BNetworkManager.sharedManager().getNetworkAdapter().readReceiptsOnFromUI(message.bMessage);
+            Drawable readStatusImg;
+            switch (status) {
+                case BMessageReceiptEntity.ReadStatus.delivered:
+                    readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext()
+                            ,R.drawable.ic_msg_delivered);
+                    break;
+                case read:
+                    readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext()
+                            ,R.drawable.ic_msg_read);
+                    break;
+                case BMessageReceiptEntity.ReadStatus.none:
+                default:
+                    readStatusImg = ContextCompat.getDrawable(mActivity.getApplicationContext()
+                            ,R.drawable.ic_msg_none);
             }
+            holder.readStatus.setImageDrawable(readStatusImg);
         }
 
         switch (message.delivered)
@@ -577,7 +578,7 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
         if (newItem == null)
             return false;
         
-        if (DEBUG) Timber.v("addRow, ID: %s, Delivered: %s", newItem.id, newItem.delivered);
+        if (DEBUG) Timber.v("addRow, ID: %s, delivered: %s", newItem.id, newItem.delivered);
 
         // Dont add message that does not have entity id and the status of the message is not sending.
         if (newItem.entityId == null && (newItem.delivered != BMessage.Delivered.No

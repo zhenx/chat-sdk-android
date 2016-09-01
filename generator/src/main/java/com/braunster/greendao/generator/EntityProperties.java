@@ -8,6 +8,7 @@ public class EntityProperties {
     /* Entities*/
     public static final String BUser = "BUser";
     public static final String BMessage = "BMessage";
+    public static final String BMessageReceipt = "BMessageReceipt";
     public static final String BThread = "BThread";
     public static final String BMetaData = "BMetadata";
     public static final String BLinkedAccount = "BLinkedAccount";
@@ -46,6 +47,11 @@ public class EntityProperties {
     public static final String Status = "status";
     public static final String isRead = "isRead";
     public static final String Delivered = "delivered";
+    public static final String MessageReceipts = "messageReceipts";
+
+    /* MessageReceipt */
+    public static final String Reader = "reader";
+    public static final String ReadStatus = "readStatus";
 
     /* Thread */
     public static final String CreationDate = "creationDate";

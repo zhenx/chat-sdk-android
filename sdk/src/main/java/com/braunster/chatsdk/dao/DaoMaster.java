@@ -12,6 +12,7 @@ import com.braunster.chatsdk.dao.BUserDao;
 import com.braunster.chatsdk.dao.BLinkedAccountDao;
 import com.braunster.chatsdk.dao.BLinkedContactDao;
 import com.braunster.chatsdk.dao.BMessageDao;
+import com.braunster.chatsdk.dao.BMessageReceiptDao;
 import com.braunster.chatsdk.dao.BThreadDao;
 import com.braunster.chatsdk.dao.BLinkDataDao;
 import com.braunster.chatsdk.dao.BFollowerDao;
@@ -29,6 +30,7 @@ public class DaoMaster extends AbstractDaoMaster {
         BLinkedAccountDao.createTable(db, ifNotExists);
         BLinkedContactDao.createTable(db, ifNotExists);
         BMessageDao.createTable(db, ifNotExists);
+        BMessageReceiptDao.createTable(db, ifNotExists);
         BThreadDao.createTable(db, ifNotExists);
         BLinkDataDao.createTable(db, ifNotExists);
         BFollowerDao.createTable(db, ifNotExists);
@@ -40,6 +42,7 @@ public class DaoMaster extends AbstractDaoMaster {
         BLinkedAccountDao.dropTable(db, ifExists);
         BLinkedContactDao.dropTable(db, ifExists);
         BMessageDao.dropTable(db, ifExists);
+        BMessageReceiptDao.dropTable(db, ifExists);
         BThreadDao.dropTable(db, ifExists);
         BLinkDataDao.dropTable(db, ifExists);
         BFollowerDao.dropTable(db, ifExists);
@@ -78,6 +81,7 @@ public class DaoMaster extends AbstractDaoMaster {
         registerDaoClass(BLinkedAccountDao.class);
         registerDaoClass(BLinkedContactDao.class);
         registerDaoClass(BMessageDao.class);
+        registerDaoClass(BMessageReceiptDao.class);
         registerDaoClass(BThreadDao.class);
         registerDaoClass(BLinkDataDao.class);
         registerDaoClass(BFollowerDao.class);

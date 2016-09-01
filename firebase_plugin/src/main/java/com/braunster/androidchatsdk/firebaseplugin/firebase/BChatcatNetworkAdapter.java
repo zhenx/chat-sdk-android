@@ -20,7 +20,7 @@ import com.braunster.chatsdk.dao.BFollower;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.network.AbstractNetworkAdapter;
@@ -390,9 +390,10 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
         });
     }
 
-    public  void updateUserReadReceipt(final BMessage message, final ReadReceipt.ReadStatus status){
+    public  void updateUserReadReceipt(final BMessage message, final int status){
         BMessageWrapper messageWrapper =  new BMessageWrapper(message);
         messageWrapper.setReadReceipt(status);
+
     }
 
     public void readReceiptsOnFromUI(BMessage message){

@@ -32,7 +32,7 @@ import com.braunster.chatsdk.adapter.AbstractChatSDKTabsAdapter;
 import com.braunster.chatsdk.adapter.PagerAdapterTabs;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.fragments.ChatSDKBaseFragment;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
@@ -190,7 +190,7 @@ public class ChatSDKMainActivity extends ChatSDKBaseActivity {
                 uiUpdaterMessages.setKilled(true);
 
             handler.removeCallbacks(uiUpdaterMessages);
-            getNetworkAdapter().updateUserReadReceipt(message, ReadReceipt.ReadStatus.Delivered);
+            getNetworkAdapter().updateUserReadReceipt(message, BMessageReceiptEntity.ReadStatus.delivered);
             uiUpdaterMessages = new UIUpdater(){
 
                 @Override

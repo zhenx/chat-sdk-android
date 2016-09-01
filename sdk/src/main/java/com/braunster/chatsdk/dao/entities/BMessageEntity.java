@@ -10,8 +10,6 @@ package com.braunster.chatsdk.dao.entities;
 import android.graphics.Color;
 import android.support.annotation.IntDef;
 
-import com.braunster.chatsdk.dao.ReadReceipt;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.HashMap;
@@ -36,20 +34,6 @@ public abstract class BMessageEntity extends Entity {
 
     public static final class Delivered{
         public static final int Yes = 0, No = 1;
-    }
-
-    public class ReaderHashMap<K,V> extends HashMap<String,ReadReceipt>{
-
-        public Boolean containsValue(ReadReceipt.ReadStatus cmpStatus){
-            for(Entry<String, ReadReceipt> entry : this.entrySet()) {
-                ReadReceipt userStatus = entry.getValue();
-                ReadReceipt.ReadStatus status = userStatus.getReadStatusActual();
-                if(status == cmpStatus)
-                    return true;
-
-            }
-            return false;
-        }
     }
 
     public abstract void setType(@MessageType Integer type);

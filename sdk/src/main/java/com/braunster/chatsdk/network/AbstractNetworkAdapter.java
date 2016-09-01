@@ -25,7 +25,7 @@ import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BThreadDao;
 import com.braunster.chatsdk.dao.BUser;
-import com.braunster.chatsdk.dao.ReadReceipt;
+import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.dao.entities.BMessageEntity;
 import com.braunster.chatsdk.interfaces.BPushHandler;
@@ -128,7 +128,7 @@ public abstract class AbstractNetworkAdapter {
     
     public abstract Promise<BMessage, BError, BMessage> sendMessage(BMessage messages);
 
-    public abstract void updateUserReadReceipt(final BMessage message, final ReadReceipt.ReadStatus status);
+    public abstract void updateUserReadReceipt(final BMessage message, final int status);
 
 
     /**
