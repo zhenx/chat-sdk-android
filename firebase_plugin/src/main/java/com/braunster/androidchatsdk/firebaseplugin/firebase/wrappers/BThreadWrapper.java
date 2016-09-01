@@ -178,7 +178,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         if (model.getTypeSafely() == BThreadEntity.Type.Private)
         {
 
-            List<BMessage> messages = DaoCore.fetchEntitiesWithProperty(BMessage.class, BMessageDao.Properties.OwnerThread, model.getId());
+            List<BMessage> messages = DaoCore.fetchEntitiesWithProperty(BMessage.class, BMessageDao.Properties.BThreadDaoId, model.getId());
 
             for (BMessage m : messages)
                 DaoCore.deleteEntity(m);
@@ -212,7 +212,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
                             
                             threadUserRef.setValue(true);
 
-                            List<BLinkData> list =  DaoCore.fetchEntitiesWithProperty(BLinkData.class, BLinkDataDao.Properties.ThreadID, model.getId());
+                            List<BLinkData> list =  DaoCore.fetchEntitiesWithProperty(BLinkData.class, BLinkDataDao.Properties.BThreadDaoId, model.getId());
 
                             DaoCore.deleteEntity(model);
 
@@ -302,7 +302,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         List<BMessage> list ;
 
         QueryBuilder<BMessage> qb = DaoCore.daoSession.queryBuilder(BMessage.class);
-        qb.where(BMessageDao.Properties.OwnerThread.eq(model.getId()));
+        qb.where(BMessageDao.Properties.BThreadDaoId.eq(model.getId()));
 
         // Making sure no null messages infected the sort.
         qb.where(BMessageDao.Properties.Date.isNotNull());
@@ -347,7 +347,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
                         {
                             msg = new BMessageWrapper(snapshot.child(key));
                          
-                            msg.model.setBThreadOwner(BThreadWrapper.this.model);
+                            msg.model.setBThread(BThreadWrapper.this.model);
                             
                             DaoCore.updateEntity(msg.model);
 

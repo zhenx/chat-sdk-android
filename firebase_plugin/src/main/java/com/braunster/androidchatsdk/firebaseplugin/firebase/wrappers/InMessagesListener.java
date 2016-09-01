@@ -95,14 +95,14 @@ public class InMessagesListener extends FirebaseGeneralEvent {
 
                     // Mark the thead as having unread messages if this message
                     // doesn't already exist on the thread
-                    if (wrapper.model.getBThreadOwner() == null)
+                    if (wrapper.model.getBThread() == null)
                         thread.setHasUnreadMessages(true);
 
                     // Update the thread
                     DaoCore.updateEntity(thread);
 
                     // Update the message.
-                    wrapper.model.setBThreadOwner(thread);
+                    wrapper.model.setBThread(thread);
 
                     if(wrapper.getModel().isMine()){
                         wrapper.initReadReceiptList();
@@ -113,6 +113,7 @@ public class InMessagesListener extends FirebaseGeneralEvent {
                         wrapper.setReadReceipt(ReadReceipt.ReadStatus.Delivered);
                     }
                     wrapper.setDelivered(BMessage.Delivered.Yes);
+                    wrapper.model.setBThread(thread);
                     DaoCore.updateEntity(wrapper.model);
 
                     if (deferred != null &&  deferred.isPending())
