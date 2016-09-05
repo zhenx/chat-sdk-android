@@ -16,13 +16,12 @@ import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BMessageWra
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BThreadWrapper;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BUserWrapper;
 import com.braunster.chatsdk.Utils.Debug;
-import com.braunster.chatsdk.dao.BFollower;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.entities.BMessageReceiptEntity;
+import com.braunster.chatsdk.dao.FollowerLink;
 import com.braunster.chatsdk.dao.core.DaoCore;
-import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BFirebaseDefines;
@@ -39,7 +38,6 @@ import com.google.firebase.database.ServerValue;
 import com.google.firebase.database.ValueEventListener;
 
 import org.apache.commons.lang3.StringUtils;
-
 import org.jdeferred.Deferred;
 import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
@@ -379,7 +377,7 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
             @Override
             public void onDone(BMessage message) {
                 // Setting the time stamp for the last message added to the thread.
-                DatabaseReference threadRef = FirebasePaths.threadRef(message.getBThread().getEntityID()).child(BFirebaseDefines.Path.BDetailsPath);
+                DatabaseReference threadRef = FirebasePaths.threadRef(message.getThread().getEntityID()).child(BFirebaseDefines.Path.BDetailsPath);
 
                 threadRef.updateChildren(FirebasePaths.getMap(new String[]{Keys.BLastMessageAdded}, ServerValue.TIMESTAMP));
 
@@ -619,101 +617,67 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
      *   If the main task will fail the error object in the "onMainFinished" method will be called."*/
     @Override
     public Promise<BThread, BError, Void> createThreadWithUsers(String name, final List<BUser> users) {
-
         final Deferred<BThread, BError, Void> deferred = new DeferredObject<>();
-        
-        BUser currentUser = currentUserModel();
 
-        // Checking to see if this users already has a private thread.
-        if (users.size() == 2)
-        {
-            if (DEBUG) Timber.d("Checking if already has a thread.");
-            List<BUser> threadusers;
-
-            BUser userToCheck;
-            if (users.get(0).getEntityID().equals(currentUser.getEntityID()))
-                userToCheck = users.get(1);
-            else userToCheck = users.get(0);
-
-            BThread deletedThreadFound = null;
-            for (BThread t : currentUser.getThreads(-1, true))
-            {
-                // Skipping public threads.
-                if (t.getTypeSafely() == BThreadEntity.Type.Public)
-                    continue;
-
-                threadusers = t.getUsers();
-                if (threadusers.size() == 2) {
-                    if (threadusers.get(0).getEntityID().equals(userToCheck.getEntityID()) ||
-                            threadusers.get(1).getEntityID().equals(userToCheck.getEntityID())) {
-
-                        // If the thread is deleted we will look for other thread with the user. 
-                        // if nothing found we will use the deleted thread and un delete it
-                        
-                        if (t.isDeleted())
-                        {
-                            deletedThreadFound = t;
-                        }
-                        else 
-                            return deferred.resolve(t);
-                    }
-                }
-            }
-            
-            if (deletedThreadFound != null){
-                
-                new BThreadWrapper(deletedThreadFound).recoverThread();
-                
-                return deferred.resolve(deletedThreadFound);
-            }
-        }
-
-        // Didnt find a new thread so we create a new.
-        final BThread thread = new BThread();
-
-        thread.setCreator(currentUser);
-        thread.setCreatorEntityId(currentUser.getEntityID());
-
-        // If we're assigning users then the thread is always going to be private
-        thread.setType(BThread.Type.Private);
-
-        // Save the thread to the database.
-        DaoCore.createEntity(thread);
-
-        updateLastOnline();
-
-        new BThreadWrapper(thread).push()
+        ThreadRecovery.checkForAndRecoverThreadWithUsers(users)
                 .done(new DoneCallback<BThread>() {
                     @Override
-                    public void onDone(BThread thread) {
-
-                        // Save the thread to the local db.
-                        DaoCore.updateEntity(thread);
-
-                        // Add users, For each added user the listener passed here will get a call.
-                        addUsersToThread(thread, users).done(new DoneCallback<BThread>() {
-                            @Override
-                            public void onDone(BThread thread) {
-                                deferred.resolve(thread);
-                            }
-                        })
-                        .fail(new FailCallback<BError>() {
-                            @Override
-                            public void onFail(BError error) {
-                                deferred.reject(error);
-                            }
-                        });
+                    public void onDone(final BThread thread) {
+                        deferred.resolve(thread);
                     }
                 })
                 .fail(new FailCallback<BError>() {
                     @Override
                     public void onFail(BError error) {
-                        // Delete the thread if failed to push
-                        DaoCore.deleteEntity(thread);
+                        // Didn't find a new thread so we create a new.
+                        final BThread thread = new BThread();
 
-                        deferred.reject(error);
+                        thread.setCreator(currentUserModel());
+                        thread.setCreatorEntityId(currentUserModel().getEntityID());
+
+                        // If we're assigning users then the thread is always going to be private
+                        thread.setType(BThread.Type.Private);
+
+                        // Save the thread to the database.
+                        DaoCore.createEntity(thread);
+
+                        updateLastOnline();
+
+                        new BThreadWrapper(thread).push()
+                                .done(new DoneCallback<BThread>() {
+                                    @Override
+                                    public void onDone(BThread thread) {
+
+                                        // Save the thread to the local db.
+                                        DaoCore.updateEntity(thread);
+
+                                        // Add users, For each added user the listener passed here will get a call.
+                                        addUsersToThread(thread, users).done(new DoneCallback<BThread>() {
+                                            @Override
+                                            public void onDone(BThread thread) {
+                                                deferred.resolve(thread);
+                                            }
+                                        })
+                                                .fail(new FailCallback<BError>() {
+                                                    @Override
+                                                    public void onFail(BError error) {
+                                                        deferred.reject(error);
+                                                    }
+                                                });
+                                    }
+                                })
+                                .fail(new FailCallback<BError>() {
+                                    @Override
+                                    public void onFail(BError error) {
+                                        // Delete the thread if failed to push
+                                        DaoCore.deleteEntity(thread);
+
+                                        deferred.reject(error);
+                                    }
+                                });
                     }
                 });
+
 
         return deferred.promise();
     }
@@ -888,7 +852,7 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
 
         // Add the current user to the userToFollow "followers" path
         DatabaseReference userToFollowRef = FirebasePaths.userRef(userToFollow.getEntityID())
-            .child(BFirebaseDefines.Path.BFollowers)
+            .child(BFirebaseDefines.Path.FollowerLinks)
             .child(user.getEntityID());
         if (DEBUG) Timber.d("followUser, userToFollowRef: ", userToFollowRef.toString());
 
@@ -901,7 +865,7 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
                 }
                 else
                 {
-                    BFollower follows = user.fetchOrCreateFollower(userToFollow, BFollower.Type.FOLLOWS);
+                    FollowerLink follows = user.fetchOrCreateFollower(userToFollow, FollowerLink.Type.FOLLOWS);
 
                     user.addContact(userToFollow);
 
@@ -951,12 +915,12 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
 
         // Remove the current user to the userToFollow "followers" path
         DatabaseReference userToFollowRef = FirebasePaths.userRef(userToUnfollow.getEntityID())
-            .child(BFirebaseDefines.Path.BFollowers)
+            .child(BFirebaseDefines.Path.FollowerLinks)
             .child(user.getEntityID());
 
         userToFollowRef.removeValue();
 
-        BFollower follows = user.fetchOrCreateFollower(userToUnfollow, BFollower.Type.FOLLOWS);
+        FollowerLink follows = user.fetchOrCreateFollower(userToUnfollow, FollowerLink.Type.FOLLOWS);
 
         // Add the user to follow to the current user follow
         DatabaseReference curUserFollowsRef = FirebasePaths.firebaseRef().child(follows.getBPath().getPath());
@@ -995,7 +959,7 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
                     {
                         BUser follwer = DaoCore.fetchOrCreateEntityWithEntityID(BUser.class, followingUserID);
 
-                        BFollower f = user.fetchOrCreateFollower(follwer, BFollower.Type.FOLLOWER);
+                        FollowerLink f = user.fetchOrCreateFollower(follwer, FollowerLink.Type.FOLLOWER);
 
                         followers.add(follwer);
                     } else if (DEBUG) Timber.e("Follower id is empty");
@@ -1068,7 +1032,7 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
                     {
                         BUser follwer = DaoCore.fetchOrCreateEntityWithEntityID(BUser.class, followingUserID);
 
-                        BFollower f = user.fetchOrCreateFollower(follwer, BFollower.Type.FOLLOWS);
+                        FollowerLink f = user.fetchOrCreateFollower(follwer, FollowerLink.Type.FOLLOWS);
 
                         followers.add(follwer);
                     }

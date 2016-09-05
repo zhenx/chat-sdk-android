@@ -83,26 +83,20 @@ public class InMessagesListener extends FirebaseGeneralEvent {
                     // Checking to see if this thread was deleted.
                     if (thread.isDeleted())
                     {
-                        if (DEBUG) Timber.v("Thread is Deleted");
-
-                        // Making sure we are now listening to all events.
-                        BThreadWrapper threadWrapper = new  BThreadWrapper(thread);
-                        threadWrapper.on();
-                        threadWrapper.usersOn();
-                        threadWrapper.messagesOn();
-                        threadWrapper.recoverThread();
+                        if (DEBUG) Timber.v("Thread was Deleted");
+                        return;
                     }
 
-                    // Mark the thead as having unread messages if this message
+                    // Mark the thread as having unread messages if this message
                     // doesn't already exist on the thread
-                    if (wrapper.model.getBThread() == null)
+                    if (wrapper.model.getThread() == null)
                         thread.setHasUnreadMessages(true);
 
                     // Update the thread
                     DaoCore.updateEntity(thread);
 
                     // Update the message.
-                    wrapper.model.setBThread(thread);
+                    wrapper.model.setThread(thread);
 
                     if(wrapper.getModel().isMine()){
                         if(wrapper.getModel().getCommonReadStatus() != BMessageReceiptEntity.ReadStatus.read){
@@ -112,7 +106,7 @@ public class InMessagesListener extends FirebaseGeneralEvent {
                         wrapper.setReadReceipt(BMessageReceiptEntity.ReadStatus.delivered);
                     }
                     wrapper.setDelivered(BMessage.Delivered.Yes);
-                    wrapper.model.setBThread(thread);
+                    wrapper.model.setThread(thread);
                     DaoCore.updateEntity(wrapper.model);
 
                     if (deferred != null &&  deferred.isPending())

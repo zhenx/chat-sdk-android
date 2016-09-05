@@ -30,8 +30,8 @@ public class BLinkedAccount extends BLinkedAccountEntity  {
     /** Used for active entity operations. */
     private transient BLinkedAccountDao myDao;
 
-    private BUser BUser;
-    private Long BUser__resolvedKey;
+    private BUser bUser;
+    private Long bUser__resolvedKey;
 
 
     // KEEP FIELDS - put your custom fields here
@@ -92,25 +92,25 @@ public class BLinkedAccount extends BLinkedAccountEntity  {
     /** To-one relationship, resolved on first access. */
     public BUser getBUser() {
         Long __key = this.BUserDaoId;
-        if (BUser__resolvedKey == null || !BUser__resolvedKey.equals(__key)) {
+        if (bUser__resolvedKey == null || !bUser__resolvedKey.equals(__key)) {
             if (daoSession == null) {
                 throw new DaoException("Entity is detached from DAO context");
             }
             BUserDao targetDao = daoSession.getBUserDao();
-            BUser BUserNew = targetDao.load(__key);
+            BUser bUserNew = targetDao.load(__key);
             synchronized (this) {
-                BUser = BUserNew;
-            	BUser__resolvedKey = __key;
+                bUser = bUserNew;
+            	bUser__resolvedKey = __key;
             }
         }
-        return BUser;
+        return bUser;
     }
 
-    public void setBUser(BUser BUser) {
+    public void setBUser(BUser bUser) {
         synchronized (this) {
-            this.BUser = BUser;
-            BUserDaoId = BUser == null ? null : BUser.getId();
-            BUser__resolvedKey = BUserDaoId;
+            this.bUser = bUser;
+            BUserDaoId = bUser == null ? null : bUser.getId();
+            bUser__resolvedKey = BUserDaoId;
         }
     }
 

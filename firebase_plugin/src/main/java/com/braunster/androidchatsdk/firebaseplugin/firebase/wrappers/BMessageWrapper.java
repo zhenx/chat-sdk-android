@@ -168,7 +168,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
     public Promise<BMessage, BError, BMessage> send(){
         if (DEBUG) Timber.v("send");
         
-        if (model.getBThread() != null)
+        if (model.getThread() != null)
         {
             return push();
         }else
@@ -188,7 +188,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
 
     public void readReceiptsOn(){
         //do not turn on read receipts for public chats
-        if (getModel().getBThread().getType() == BThread.Type.Public){
+        if (getModel().getThread().getType() == BThread.Type.Public){
             return;
         }
         if(getModel().getCommonReadStatus() != BMessageReceiptEntity.ReadStatus.read){
@@ -263,7 +263,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         final String receiptId = currentUser.getEntityID();
 
         // Do not set read-receipts for public chats!
-        if (model.getBThread().getType() == BThread.Type.Public) {
+        if (model.getThread().getType() == BThread.Type.Public) {
             return;
         }
         // Do not set read receipts for your own messages!
@@ -302,11 +302,11 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
     private DatabaseReference ref(){
         if (StringUtils.isNotEmpty(model.getEntityID()))
         {
-            return FirebasePaths.threadMessagesRef(model.getBThread().getEntityID()).child(model.getEntityID());
+            return FirebasePaths.threadMessagesRef(model.getThread().getEntityID()).child(model.getEntityID());
         }
         else
         {
-            return FirebasePaths.threadMessagesRef(model.getBThread().getEntityID()).push();
+            return FirebasePaths.threadMessagesRef(model.getThread().getEntityID()).push();
         }
     }
 
