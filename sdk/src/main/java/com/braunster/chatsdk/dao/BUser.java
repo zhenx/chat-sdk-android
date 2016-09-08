@@ -326,6 +326,8 @@ public class BUser extends BUserEntity  {
         // Freshen up the data by calling reset before getting the list
         resetUserThreadLinks();
         List<UserThreadLink> UserThreadLinkList = getUserThreadLinks();
+        //List<UserThreadLink> UserThreadLinkList = DaoCore.fetchEntitiesWithProperty(UserThreadLink.class,
+        //        UserThreadLinkDao.Properties.BUserDaoId, getEntityID());
         // In case the list is empty
         if (UserThreadLinkList == null) return null;
         // Pull the threads out of the link object . . . if only gDao supported manyToMany . . .

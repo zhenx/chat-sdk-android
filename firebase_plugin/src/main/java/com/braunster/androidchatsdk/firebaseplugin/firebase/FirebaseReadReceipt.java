@@ -8,7 +8,6 @@ public class FirebaseReadReceipt {
     private String userId;
     private Long date;
     private Integer status;
-
     public FirebaseReadReceipt(){
         // empty default constructor for Firebase deserialization
     }

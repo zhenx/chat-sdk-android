@@ -116,12 +116,7 @@ public class Generator {
             // add toOne relationship to the message the readReceipt is connected to
             Property bMessageProp = messageReceipt
                     .addLongProperty(EntityProperties.BMessage + "Id").getProperty();
-            messageReceipt.addToOne(message, bMessageProp).setName(EntityProperties.BMessage);
-
-            // add toMany relationship to messages (one for each reader)
-            Property messageReceipts = message
-                    .addLongProperty(EntityProperties.MessageReceipts + "Id").getProperty();
-            message.addToMany(messageReceipt, messageReceipts);
+            message.addToMany(messageReceipt, bMessageProp);
 
             messageReceipt.setSuperclass(EntityProperties.BMessageReceipt+"Entity");
         }

@@ -41,7 +41,6 @@ public class BMessage extends BMessageEntity  {
     private Integer status;
     private Integer delivered;
     private Long Sender;
-    private Long messageReceiptsId;
     private Long threadDaoId;
 
     /** Used to resolve relations */
@@ -75,7 +74,7 @@ public class BMessage extends BMessageEntity  {
         this.id = id;
     }
 
-    public BMessage(Long id, String entityID, java.util.Date date, Boolean isRead, String resources, String resourcesPath, String text, String imageDimensions, Integer type, Integer status, Integer delivered, Long Sender, Long messageReceiptsId, Long threadDaoId) {
+    public BMessage(Long id, String entityID, java.util.Date date, Boolean isRead, String resources, String resourcesPath, String text, String imageDimensions, Integer type, Integer status, Integer delivered, Long Sender, Long threadDaoId) {
         this.id = id;
         this.entityID = entityID;
         this.date = date;
@@ -88,7 +87,6 @@ public class BMessage extends BMessageEntity  {
         this.status = status;
         this.delivered = delivered;
         this.Sender = Sender;
-        this.messageReceiptsId = messageReceiptsId;
         this.threadDaoId = threadDaoId;
     }
 
@@ -192,14 +190,6 @@ public class BMessage extends BMessageEntity  {
 
     public void setSender(Long Sender) {
         this.Sender = Sender;
-    }
-
-    public Long getMessageReceiptsId() {
-        return messageReceiptsId;
-    }
-
-    public void setMessageReceiptsId(Long messageReceiptsId) {
-        this.messageReceiptsId = messageReceiptsId;
     }
 
     public Long getThreadDaoId() {
@@ -395,38 +385,54 @@ public class BMessage extends BMessageEntity  {
      * @param messageReceiptStatus
      * @return returns true if the readReceipt needed to be updated
      */
-    public Boolean setUserReadReceipt(BUser reader, int messageReceiptStatus){
+    public Boolean updateUserReadReceipt(BUser reader, int messageReceiptStatus){
 
-        // Add the read receipt to the local dao database
-        BMessageReceipt bMessageReceipt = new BMessageReceipt();
-        List readReceipts = getBMessageReceiptList();
-
-        // Check for existing read receipt, and return if it should not be changed
-        BMessageReceipt oldBMessageReceipt = getUserReadReceipt(reader);
-        // If user is not is null, and not being initialized, return
-        if(oldBMessageReceipt.getReadStatus() == null && messageReceiptStatus != none) return false;
-        // If user is is not null, make sure a higher status value is not overwritten.
-        if(oldBMessageReceipt.getReadStatus() != null) {
-            if (oldBMessageReceipt.getReadStatus() > messageReceiptStatus) return false;
-            // Remove old user read receipt
-            removeUserReadReceipt(reader);
+        // Do not set read-receipts for public chats!
+        if (this.getThread().getTypeSafely() == BThread.Type.Public) {
+            return false;
         }
-        // Update read receipt
-        bMessageReceipt.setReader(reader);
-        bMessageReceipt.setReaderId(reader.getId());
-        bMessageReceipt.setBMessage(this);
-        bMessageReceipt.setBMessageId(this.getId());
-        bMessageReceipt.setReadStatus(messageReceiptStatus);
-        daoSession.insert(bMessageReceipt);
-        readReceipts.add(bMessageReceipt);
-        DaoCore.updateEntity(this);
+
+        BMessageReceipt oldBMessageReceipt = getUserReadReceipt(reader);
+
+        // Only update receipts that have been initialized
+        if(oldBMessageReceipt.getReadStatus() == null) return false;
+        // Make sure a higher status value is not overwritten.
+        if (oldBMessageReceipt.getReadStatus() >= messageReceiptStatus) return false;
+        // Remove old user read receipt
+        removeUserReadReceipt(reader);
+
+        createUserReadReceipt(reader, messageReceiptStatus);
         return true;
     }
 
+    /***
+     * used for initial creation of receipts and loading existing ones from remote DB
+     * @param reader
+     * @param messageReceiptStatus
+     * @return returns true if the readReceipt needed to be updated
+     */
+    public void createUserReadReceipt(BUser reader, int messageReceiptStatus){
+
+        // Add the read receipt to the local dao database
+        BMessageReceipt bMessageReceipt = new BMessageReceipt();
+
+        // Add/update a read receipt
+        resetBMessageReceiptList();
+        List readReceipts = getBMessageReceiptList();
+        bMessageReceipt.setReader(reader);
+        bMessageReceipt.setReaderId(reader.getId());
+        bMessageReceipt.setBMessageId(this.getId());
+        bMessageReceipt.setReadStatus(messageReceiptStatus);
+
+        daoSession.insertOrReplace(bMessageReceipt);
+        readReceipts.add(bMessageReceipt);
+        DaoCore.updateEntity(this);
+    }
+
     public BMessageReceipt getUserReadReceipt(BUser reader){
+        resetBMessageReceiptList();
         List<BMessageReceipt> readReceipts = getBMessageReceiptList();
 
-        // Check for read receipt and remove it if it is lower, return if it should not be changed
         for( BMessageReceipt bMessageReceipt : readReceipts){
             if(bMessageReceipt.getReader().getEntityID().equals(reader.getEntityID())){
                 return bMessageReceipt;
@@ -457,13 +463,15 @@ public class BMessage extends BMessageEntity  {
         // add all users in the chat other than yourself
         for (BUser reader : readers) {
             if (getBUserSender().equals(reader)) continue;
-            setUserReadReceipt(reader, none);
+            createUserReadReceipt(reader, none);
         }
+        this.update();
     }
 
     //Returns the ReadStatus that is representative lowest common read Status of all users in Map
     public int getCommonReadStatus(){
         List<BMessageReceipt> readReceipts;
+        resetBMessageReceiptList();
         readReceipts = getBMessageReceiptList();
 
         Boolean delivered = false;

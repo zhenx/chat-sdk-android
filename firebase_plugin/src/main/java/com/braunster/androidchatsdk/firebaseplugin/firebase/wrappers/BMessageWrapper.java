@@ -129,7 +129,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
             for(DataSnapshot snap : snapshot.child(BDefines.Keys.BRead).getChildren()){
                 FirebaseReadReceipt receipt = snap.getValue(FirebaseReadReceipt.class);
                 BUser user = DaoCore.fetchOrCreateEntityWithEntityID(BUser.class, snap.getKey());
-                model.setUserReadReceipt(user, receipt.getStatus());
+                model.createUserReadReceipt(user, receipt.getStatus());
             }
         }
                 
@@ -201,7 +201,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                     // get user from dao
                     BUser reader = DaoCore.fetchEntityWithProperty(BUser.class,
                             BUserDao.Properties.EntityID, userId);
-                    model.setUserReadReceipt(reader, receipt.getStatus());
+                    model.updateUserReadReceipt(reader, receipt.getStatus());
                     FirebaseEventsManager.getInstance().onMessageReceived(model);
 
                     if(model.getCommonReadStatus() == BMessageReceiptEntity.ReadStatus.read){
@@ -217,7 +217,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                     // get user from dao
                     BUser reader = DaoCore.fetchEntityWithProperty(BUser.class,
                             BUserDao.Properties.EntityID, userId);
-                    model.setUserReadReceipt(reader, receipt.getStatus());
+                    model.updateUserReadReceipt(reader, receipt.getStatus());
                     FirebaseEventsManager.getInstance().onMessageReceived(model);
 
                     if(model.getCommonReadStatus() == BMessageReceiptEntity.ReadStatus.read){
@@ -262,14 +262,8 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         final BUser currentUser = getNetworkAdapter().currentUserModel();
         final String receiptId = currentUser.getEntityID();
 
-        // Do not set read-receipts for public chats!
-        if (model.getThread().getType() == BThread.Type.Public) {
-            return;
-        }
-        // Do not set read receipts for your own messages!
-        if (model.isMine()) return;
         // Do not set read receipt if the message status doesn't need to be updated
-        if(!model.setUserReadReceipt(currentUser, bMessageReceiptStatus)){
+        if(!model.updateUserReadReceipt(currentUser, bMessageReceiptStatus)){
             if (DEBUG) {
                 Log.d(TAG, "BMessageWrapper: Message is already set to highest state" +
                         "\n    Aborting to avoid overwrite");
@@ -279,6 +273,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
 
         // Update the receipt on firebase
         BMessageReceipt bMessageReceipt = model.getUserReadReceipt(currentUser);
+        if(bMessageReceipt == null) return;
         firebaseReadReceipt = new FirebaseReadReceipt(bMessageReceipt.getReader().getEntityID(),
                 null, bMessageReceipt.getReadStatus());
         ref().child(BDefines.Keys.BRead).child(bMessageReceipt.getReader().getEntityID())

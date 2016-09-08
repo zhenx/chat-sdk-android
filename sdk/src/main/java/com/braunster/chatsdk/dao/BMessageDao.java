@@ -40,8 +40,7 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
         public final static Property Status = new Property(9, Integer.class, "status", false, "STATUS");
         public final static Property Delivered = new Property(10, Integer.class, "delivered", false, "DELIVERED");
         public final static Property Sender = new Property(11, Long.class, "Sender", false, "SENDER");
-        public final static Property MessageReceiptsId = new Property(12, Long.class, "messageReceiptsId", false, "MESSAGE_RECEIPTS_ID");
-        public final static Property ThreadDaoId = new Property(13, Long.class, "threadDaoId", false, "THREAD_DAO_ID");
+        public final static Property ThreadDaoId = new Property(12, Long.class, "threadDaoId", false, "THREAD_DAO_ID");
     };
 
     private DaoSession daoSession;
@@ -73,8 +72,7 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
                 "'STATUS' INTEGER," + // 9: status
                 "'DELIVERED' INTEGER," + // 10: delivered
                 "'SENDER' INTEGER," + // 11: Sender
-                "'MESSAGE_RECEIPTS_ID' INTEGER," + // 12: messageReceiptsId
-                "'THREAD_DAO_ID' INTEGER);"); // 13: threadDaoId
+                "'THREAD_DAO_ID' INTEGER);"); // 12: threadDaoId
     }
 
     /** Drops the underlying database table. */
@@ -148,14 +146,9 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
             stmt.bindLong(12, Sender);
         }
  
-        Long messageReceiptsId = entity.getMessageReceiptsId();
-        if (messageReceiptsId != null) {
-            stmt.bindLong(13, messageReceiptsId);
-        }
- 
         Long threadDaoId = entity.getThreadDaoId();
         if (threadDaoId != null) {
-            stmt.bindLong(14, threadDaoId);
+            stmt.bindLong(13, threadDaoId);
         }
     }
 
@@ -187,8 +180,7 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
             cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // status
             cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // delivered
             cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // Sender
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12), // messageReceiptsId
-            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13) // threadDaoId
+            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12) // threadDaoId
         );
         return entity;
     }
@@ -208,8 +200,7 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
         entity.setStatus(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
         entity.setDelivered(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
         entity.setSender(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
-        entity.setMessageReceiptsId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
-        entity.setThreadDaoId(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setThreadDaoId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
      }
     
     /** @inheritdoc */

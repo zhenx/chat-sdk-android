@@ -643,7 +643,6 @@ public class FirebaseEventsManager extends AbstractEventManager implements AppEv
                     if (!isListeningToThread(threadFirebaseID))
                     {
                         BThreadWrapper wrapper = new BThreadWrapper(threadFirebaseID);
-                        
                         // Starting to listen to thread changes.
                         wrapper.on();
                         wrapper.messagesOn();

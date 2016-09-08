@@ -32,7 +32,6 @@ public class BMessageReceiptDao extends AbstractDao<BMessageReceipt, Long> {
         public final static Property ReadStatus = new Property(1, Integer.class, "readStatus", false, "READ_STATUS");
         public final static Property ReaderId = new Property(2, Long.class, "readerId", false, "READER_ID");
         public final static Property BMessageId = new Property(3, Long.class, "BMessageId", false, "BMESSAGE_ID");
-        public final static Property MessageReceiptsId = new Property(4, Long.class, "messageReceiptsId", false, "MESSAGE_RECEIPTS_ID");
     };
 
     private DaoSession daoSession;
@@ -55,8 +54,7 @@ public class BMessageReceiptDao extends AbstractDao<BMessageReceipt, Long> {
                 "'_id' INTEGER PRIMARY KEY ," + // 0: id
                 "'READ_STATUS' INTEGER," + // 1: readStatus
                 "'READER_ID' INTEGER," + // 2: readerId
-                "'BMESSAGE_ID' INTEGER," + // 3: BMessageId
-                "'MESSAGE_RECEIPTS_ID' INTEGER);"); // 4: messageReceiptsId
+                "'BMESSAGE_ID' INTEGER);"); // 3: BMessageId
     }
 
     /** Drops the underlying database table. */
@@ -148,16 +146,16 @@ public class BMessageReceiptDao extends AbstractDao<BMessageReceipt, Long> {
     }
     
     /** Internal query to resolve the "bMessageReceiptList" to-many relationship of BMessage. */
-    public List<BMessageReceipt> _queryBMessage_BMessageReceiptList(Long messageReceiptsId) {
+    public List<BMessageReceipt> _queryBMessage_BMessageReceiptList(Long BMessageId) {
         synchronized (this) {
             if (bMessage_BMessageReceiptListQuery == null) {
                 QueryBuilder<BMessageReceipt> queryBuilder = queryBuilder();
-                queryBuilder.where(Properties.MessageReceiptsId.eq(null));
+                queryBuilder.where(Properties.BMessageId.eq(null));
                 bMessage_BMessageReceiptListQuery = queryBuilder.build();
             }
         }
         Query<BMessageReceipt> query = bMessage_BMessageReceiptListQuery.forCurrentThread();
-        query.setParameter(0, messageReceiptsId);
+        query.setParameter(0, BMessageId);
         return query.list();
     }
 
@@ -169,11 +167,8 @@ public class BMessageReceiptDao extends AbstractDao<BMessageReceipt, Long> {
             SqlUtils.appendColumns(builder, "T", getAllColumns());
             builder.append(',');
             SqlUtils.appendColumns(builder, "T0", daoSession.getBUserDao().getAllColumns());
-            builder.append(',');
-            SqlUtils.appendColumns(builder, "T1", daoSession.getBMessageDao().getAllColumns());
             builder.append(" FROM BMESSAGE_RECEIPT T");
             builder.append(" LEFT JOIN BUSER T0 ON T.'READER_ID'=T0.'_id'");
-            builder.append(" LEFT JOIN BMESSAGE T1 ON T.'BMESSAGE_ID'=T1.'_id'");
             builder.append(' ');
             selectDeep = builder.toString();
         }
@@ -186,10 +181,6 @@ public class BMessageReceiptDao extends AbstractDao<BMessageReceipt, Long> {
 
         BUser reader = loadCurrentOther(daoSession.getBUserDao(), cursor, offset);
         entity.setReader(reader);
-        offset += daoSession.getBUserDao().getAllColumns().length;
-
-        BMessage BMessage = loadCurrentOther(daoSession.getBMessageDao(), cursor, offset);
-        entity.setBMessage(BMessage);
 
         return entity;    
     }
