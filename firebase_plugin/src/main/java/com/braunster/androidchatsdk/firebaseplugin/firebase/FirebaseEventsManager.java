@@ -643,6 +643,7 @@ public class FirebaseEventsManager extends AbstractEventManager implements AppEv
                     if (!isListeningToThread(threadFirebaseID))
                     {
                         BThreadWrapper wrapper = new BThreadWrapper(threadFirebaseID);
+                        
                         // Starting to listen to thread changes.
                         wrapper.on();
                         wrapper.messagesOn();
@@ -655,6 +656,10 @@ public class FirebaseEventsManager extends AbstractEventManager implements AppEv
                                 !wrapper.getModel().hasUser(currentUser))
                         {
                             wrapper.addUser(BUserWrapper.initWithModel(currentUser));
+                            BThread thread = wrapper.getModel();
+                            thread.setType(BThreadEntity.Type.Private);
+                            DaoCore.createEntity(thread);
+                            DaoCore.connectUserAndThread(currentUser, thread);
                         }
                         
                         // Triggering thread added events.

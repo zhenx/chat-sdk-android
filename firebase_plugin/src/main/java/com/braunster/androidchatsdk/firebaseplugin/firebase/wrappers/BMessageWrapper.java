@@ -44,27 +44,15 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
     private final String TAG = this.getClass().getSimpleName();
     private static boolean DEBUG = true;
     private ChildEventListener readReceiptListener;
-    
-    public static BMessageWrapper initWithEntityId(String entityId){
-        return new BMessageWrapper((BMessage) DaoCore.fetchOrCreateEntityWithEntityID(BMessage.class, entityId));
-    }
-
-    public static BMessageWrapper initWithModel(BMessage model){
-        return new BMessageWrapper(model);
-    }
-
-    public static BMessageWrapper initWithSnapshot(DataSnapshot snapshot){
-        return new BMessageWrapper(snapshot);
-    }
-
 
     public BMessageWrapper(BMessage model){
         this.model = model;
         this.entityId = model.getEntityID();
     }
 
-    public BMessageWrapper(DataSnapshot snapshot){
+    public BMessageWrapper(BThread thread, DataSnapshot snapshot){
         this.model = DaoCore.fetchOrCreateEntityWithEntityID(BMessage.class, snapshot.getKey());
+        this.getModel().setThread(thread);
         this.entityId = snapshot.getKey();
 
         deserialize(snapshot);
@@ -80,7 +68,6 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         values.put(BDefines.Keys.BType, model.getType());
         values.put(BDefines.Keys.BUserFirebaseId, model.getBUserSender().getEntityID());
         values.put(BDefines.Keys.BRead, initReadReceiptList());
-
 
         return values;
     }
@@ -132,7 +119,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
                 model.createUserReadReceipt(user, receipt.getStatus());
             }
         }
-                
+
         // Updating the db
         DaoCore.updateEntity(model);
     }
@@ -293,7 +280,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         }
         return firebaseReadReceipts;
     }
-    
+
     private DatabaseReference ref(){
         if (StringUtils.isNotEmpty(model.getEntityID()))
         {
