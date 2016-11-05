@@ -262,7 +262,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
         BMessageReceipt bMessageReceipt = model.getUserReadReceipt(currentUser);
         if(bMessageReceipt == null) return;
         firebaseReadReceipt = new FirebaseReadReceipt(bMessageReceipt.getReader().getEntityID(),
-                null, bMessageReceipt.getReadStatus());
+                null, bMessageReceiptStatus);
         ref().child(BDefines.Keys.BRead).child(bMessageReceipt.getReader().getEntityID())
                 .setValue(firebaseReadReceipt);
 

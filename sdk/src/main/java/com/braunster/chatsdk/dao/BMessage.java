@@ -417,8 +417,11 @@ public class BMessage extends BMessageEntity  {
         BMessageReceipt bMessageReceipt = new BMessageReceipt();
 
         // Add/update a read receipt
+        removeUserReadReceipt(reader);
         resetBMessageReceiptList();
         List readReceipts = getBMessageReceiptList();
+
+
         bMessageReceipt.setReader(reader);
         bMessageReceipt.setReaderId(reader.getId());
         bMessageReceipt.setBMessageId(this.getId());
@@ -430,8 +433,8 @@ public class BMessage extends BMessageEntity  {
     }
 
     public BMessageReceipt getUserReadReceipt(BUser reader){
-        resetBMessageReceiptList();
-        List<BMessageReceipt> readReceipts = getBMessageReceiptList();
+        this.resetBMessageReceiptList();
+        List<BMessageReceipt> readReceipts = this.getBMessageReceiptList();
 
         for( BMessageReceipt bMessageReceipt : readReceipts){
             if(bMessageReceipt.getReader().getEntityID().equals(reader.getEntityID())){
@@ -443,10 +446,13 @@ public class BMessage extends BMessageEntity  {
     }
 
     public void removeUserReadReceipt(BUser reader){
-        List readReceipts = getBMessageReceiptList();
+        this.resetBMessageReceiptList();
+        List<BMessageReceipt> readReceipts = this.getBMessageReceiptList();
         BMessageReceipt bMessageReceipt = getUserReadReceipt(reader);
+        if(bMessageReceipt.getReaderId() == null) return;
         daoSession.delete(bMessageReceipt);
         readReceipts.remove(bMessageReceipt);
+        this.resetBMessageReceiptList();
     }
 
     //Initialize all readers in the list of listeners in the thread to be included in reader list
@@ -488,6 +494,9 @@ public class BMessage extends BMessageEntity  {
                     read = true;
                     break;
             }
+        }
+        if(!read){
+            BNetworkManager.sharedManager().getNetworkAdapter().readReceiptsOnFromUI(this);
         }
         if(delivered){
             return BMessageReceiptEntity.ReadStatus.delivered;
