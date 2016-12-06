@@ -93,6 +93,8 @@ public class Generator {
         message.addIntProperty(EntityProperties.Type);
         message.addIntProperty(EntityProperties.Status);
         message.addIntProperty(EntityProperties.Delivered);
+        message.addIntProperty(EntityProperties.Duration);
+        message.addBooleanProperty(EntityProperties.ListeningToReadReceipts);
 
         // The sender ID
         Property messagePropSender = message.addLongProperty("Sender").getProperty();

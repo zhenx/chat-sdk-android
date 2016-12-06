@@ -40,6 +40,8 @@ public class BMessage extends BMessageEntity  {
     private Integer type;
     private Integer status;
     private Integer delivered;
+    private Integer duration;
+    private Boolean listeningToReadReceipts;
     private Long Sender;
     private Long threadDaoId;
 
@@ -74,7 +76,7 @@ public class BMessage extends BMessageEntity  {
         this.id = id;
     }
 
-    public BMessage(Long id, String entityID, java.util.Date date, Boolean isRead, String resources, String resourcesPath, String text, String imageDimensions, Integer type, Integer status, Integer delivered, Long Sender, Long threadDaoId) {
+    public BMessage(Long id, String entityID, java.util.Date date, Boolean isRead, String resources, String resourcesPath, String text, String imageDimensions, Integer type, Integer status, Integer delivered, Integer duration, Boolean listeningToReadReceipts, Long Sender, Long threadDaoId) {
         this.id = id;
         this.entityID = entityID;
         this.date = date;
@@ -86,6 +88,8 @@ public class BMessage extends BMessageEntity  {
         this.type = type;
         this.status = status;
         this.delivered = delivered;
+        this.duration = duration;
+        this.listeningToReadReceipts = listeningToReadReceipts;
         this.Sender = Sender;
         this.threadDaoId = threadDaoId;
     }
@@ -182,6 +186,22 @@ public class BMessage extends BMessageEntity  {
 
     public void setDelivered(Integer delivered) {
         this.delivered = delivered;
+    }
+
+    public Integer getDuration() {
+        return duration;
+    }
+
+    public void setDuration(Integer duration) {
+        this.duration = duration;
+    }
+
+    public Boolean getListeningToReadReceipts() {
+        return listeningToReadReceipts;
+    }
+
+    public void setListeningToReadReceipts(Boolean listeningToReadReceipts) {
+        this.listeningToReadReceipts = listeningToReadReceipts;
     }
 
     public Long getSender() {
@@ -495,9 +515,9 @@ public class BMessage extends BMessageEntity  {
                     break;
             }
         }
-        if(!read){
-            BNetworkManager.sharedManager().getNetworkAdapter().readReceiptsOnFromUI(this);
-        }
+//        if(!read){
+//            BNetworkManager.sharedManager().getNetworkAdapter().readReceiptsOnFromUI(this);
+//        }
         if(delivered){
             return BMessageReceiptEntity.ReadStatus.delivered;
         } else if (read) {

@@ -43,7 +43,7 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
 
     private final String TAG = this.getClass().getSimpleName();
     private static boolean DEBUG = true;
-    private ChildEventListener readReceiptListener;
+    private ChildEventListener readReceiptListener = null;
 
     public BMessageWrapper(BMessage model){
         this.model = model;
@@ -175,10 +175,12 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
 
     public void readReceiptsOn(){
         //do not turn on read receipts for public chats
-        if (getModel().getThread().getType() == BThread.Type.Public){
+        if (getModel().getThread().getType() == BThread.Type.Public ||
+                getModel().getListeningToReadReceipts() == Boolean.TRUE){
             return;
         }
         if(getModel().getCommonReadStatus() != BMessageReceiptEntity.ReadStatus.read){
+            getModel().setListeningToReadReceipts(Boolean.TRUE);
             ref().child(BDefines.Keys.BRead).addChildEventListener(readReceiptListener = new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -242,6 +244,8 @@ public class BMessageWrapper extends EntityWrapper<BMessage> {
 
     public void readReceiptsOff(){
         ref().child(BDefines.Keys.BRead).removeEventListener(readReceiptListener);
+        getModel().setListeningToReadReceipts(Boolean.FALSE);
+        readReceiptListener = null;
     }
 
     public void setReadReceipt(int bMessageReceiptStatus){

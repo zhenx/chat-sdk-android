@@ -39,8 +39,10 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
         public final static Property Type = new Property(8, Integer.class, "type", false, "TYPE");
         public final static Property Status = new Property(9, Integer.class, "status", false, "STATUS");
         public final static Property Delivered = new Property(10, Integer.class, "delivered", false, "DELIVERED");
-        public final static Property Sender = new Property(11, Long.class, "Sender", false, "SENDER");
-        public final static Property ThreadDaoId = new Property(12, Long.class, "threadDaoId", false, "THREAD_DAO_ID");
+        public final static Property Duration = new Property(11, Integer.class, "duration", false, "DURATION");
+        public final static Property ListeningToReadReceipts = new Property(12, Boolean.class, "listeningToReadReceipts", false, "LISTENING_TO_READ_RECEIPTS");
+        public final static Property Sender = new Property(13, Long.class, "Sender", false, "SENDER");
+        public final static Property ThreadDaoId = new Property(14, Long.class, "threadDaoId", false, "THREAD_DAO_ID");
     };
 
     private DaoSession daoSession;
@@ -71,8 +73,10 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
                 "'TYPE' INTEGER," + // 8: type
                 "'STATUS' INTEGER," + // 9: status
                 "'DELIVERED' INTEGER," + // 10: delivered
-                "'SENDER' INTEGER," + // 11: Sender
-                "'THREAD_DAO_ID' INTEGER);"); // 12: threadDaoId
+                "'DURATION' INTEGER," + // 11: duration
+                "'LISTENING_TO_READ_RECEIPTS' INTEGER," + // 12: listeningToReadReceipts
+                "'SENDER' INTEGER," + // 13: Sender
+                "'THREAD_DAO_ID' INTEGER);"); // 14: threadDaoId
     }
 
     /** Drops the underlying database table. */
@@ -141,14 +145,24 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
             stmt.bindLong(11, delivered);
         }
  
+        Integer duration = entity.getDuration();
+        if (duration != null) {
+            stmt.bindLong(12, duration);
+        }
+ 
+        Boolean listeningToReadReceipts = entity.getListeningToReadReceipts();
+        if (listeningToReadReceipts != null) {
+            stmt.bindLong(13, listeningToReadReceipts ? 1l: 0l);
+        }
+ 
         Long Sender = entity.getSender();
         if (Sender != null) {
-            stmt.bindLong(12, Sender);
+            stmt.bindLong(14, Sender);
         }
  
         Long threadDaoId = entity.getThreadDaoId();
         if (threadDaoId != null) {
-            stmt.bindLong(13, threadDaoId);
+            stmt.bindLong(15, threadDaoId);
         }
     }
 
@@ -179,8 +193,10 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
             cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8), // type
             cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9), // status
             cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10), // delivered
-            cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11), // Sender
-            cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12) // threadDaoId
+            cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11), // duration
+            cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0, // listeningToReadReceipts
+            cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13), // Sender
+            cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14) // threadDaoId
         );
         return entity;
     }
@@ -199,8 +215,10 @@ public class BMessageDao extends AbstractDao<BMessage, Long> {
         entity.setType(cursor.isNull(offset + 8) ? null : cursor.getInt(offset + 8));
         entity.setStatus(cursor.isNull(offset + 9) ? null : cursor.getInt(offset + 9));
         entity.setDelivered(cursor.isNull(offset + 10) ? null : cursor.getInt(offset + 10));
-        entity.setSender(cursor.isNull(offset + 11) ? null : cursor.getLong(offset + 11));
-        entity.setThreadDaoId(cursor.isNull(offset + 12) ? null : cursor.getLong(offset + 12));
+        entity.setDuration(cursor.isNull(offset + 11) ? null : cursor.getInt(offset + 11));
+        entity.setListeningToReadReceipts(cursor.isNull(offset + 12) ? null : cursor.getShort(offset + 12) != 0);
+        entity.setSender(cursor.isNull(offset + 13) ? null : cursor.getLong(offset + 13));
+        entity.setThreadDaoId(cursor.isNull(offset + 14) ? null : cursor.getLong(offset + 14));
      }
     
     /** @inheritdoc */

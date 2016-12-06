@@ -48,7 +48,8 @@ public class EntityProperties {
     public static final String isRead = "isRead";
     public static final String Delivered = "delivered";
     public static final String Thread = "thread";
-    public static final String MessageReceipts = "messageReceipts";
+    public static final String Duration = "duration";
+    public static final String ListeningToReadReceipts = "listeningToReadReceipts";
 
     /* MessageReceipt */
     public static final String Reader = "reader";

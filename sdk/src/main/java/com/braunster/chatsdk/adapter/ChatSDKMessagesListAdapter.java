@@ -416,6 +416,10 @@ public class ChatSDKMessagesListAdapter extends BaseAdapter{
                             ,R.drawable.ic_msg_none);
             }
             holder.readStatus.setImageDrawable(readStatusImg);
+            if(status != read){
+                BNetworkManager.sharedManager().getNetworkAdapter()
+                        .readReceiptsOnFromUI(message.bMessage);
+            }
         }
 
         switch (message.delivered)
