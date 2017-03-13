@@ -37,6 +37,7 @@ import com.braunster.chatsdk.object.Cropper;
 import com.braunster.chatsdk.view.ChatMessageBoxView;
 import com.github.johnpersano.supertoasts.SuperCardToast;
 import com.google.android.gms.maps.model.LatLng;
+import com.soundcloud.android.crop.BuildConfig;
 import com.soundcloud.android.crop.Crop;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,7 +56,7 @@ import timber.log.Timber;
 
 public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsListener, ChatMessageBoxView.MessageSendListener, ChatMessageBoxView.MessageBoxTypingListener{
 
-    public static final int ERROR = 1991, NOT_HANDLED = 1992, HANDELD = 1993;
+    public static final int ERROR = 1991, NOT_HANDLED = 1992, HANDLED = 1993;
 
     /** The key to get the shared file uri. This is used when the activity is opened to share and image or a file with the chat users.
      *  Example can be found in ContactsFragment that use click mode share with contact. */
@@ -64,13 +65,14 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     /** The key to get shared text, this is used when the activity is open to share text with the chat user.
      *  Example can be found in ContactsFragment that use click mode share with contact. */
     public static final String SHARED_TEXT = "shared_text";
+    public static final String LAT = "lat", LNG = "lng";
+
 
     /** The key to get the shared file path. This is used when the activity is opened to share and image or a file with the chat users.
      */
     public static final String SHARED_FILE_PATH = "shared_file_path";
 
     public static final String SHARE_LOCATION = "share_location";
-    public static final String LAT = "lat", LNG = "lng";
 
     public static final String READ_COUNT = "read_count";
 
@@ -106,8 +108,6 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
      * The file name of the image that was picked and cropped
      **/
     private String mFileName;
-    
-    private double lat = 0, lng = 0;
 
     /** Keeping track of the amount of messages that was read in this thread.*/
     private int readCount = 0;
@@ -123,15 +123,11 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     private ProgressBar progressBar;
     private ChatSDKMessagesListAdapter messagesListAdapter;
 
-
-
     public ChatSDKChatHelper(Activity activity, BThread thread, ChatSDKUiHelper uiHelper) {
         this.activity = new WeakReference<Activity>(activity);
         this.thread = thread;
         this.uiHelper = uiHelper;
     }
-
-
 
     public void integrateUI(ChatMessageBoxView messageBoxView, ChatSDKMessagesListAdapter messagesListAdapter, ListView listView, ProgressBar progressBar) {
         integrateUI(true, messageBoxView, messagesListAdapter, listView, progressBar);
@@ -149,7 +145,6 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
         messageBoxView.setMessageBoxOptionsListener(this);
         messageBoxView.setMessageBoxTypingListener(this);
     }
-
 
     /** Load messages from the database and saving the current position of the list.*/
     public void loadMessagesAndRetainCurrentPos(){
@@ -177,7 +172,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
             @Override
             public void run() {
 
-                if (collected())
+                if (!hasActivity())
                     return;
                 
                 final int oldDataSize = messagesListAdapter.getCount();
@@ -267,7 +262,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
         List<BMessage> list ;
 
         QueryBuilder<BMessage> qb = DaoCore.daoSession.queryBuilder(BMessage.class);
-        qb.where(BMessageDao.Properties.OwnerThread.eq(id));
+        qb.where(BMessageDao.Properties.ThreadDaoId.eq(id));
 
         // Making sure no null messages infected the sort.
         qb.where(BMessageDao.Properties.Date.isNotNull());
@@ -307,7 +302,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     }
 
     public void scrollListTo(final int pos, final boolean smooth) {
-        if (collected())
+        if (!hasActivity())
             return;
         
         if (listMessages == null)
@@ -334,7 +329,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
 
     public void animateListView(){
 
-        if (collected())
+        if (!hasActivity())
             return;
         
         if (listMessages == null)
@@ -367,86 +362,80 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
         listMessages.getAnimation().start();
     }
 
-    public int handleResult(int requestCode, int resultCode, Intent data) {
-        return handleResult(true, requestCode, resultCode, data);
-    }
-
-    public int handleResult(boolean send, int requestCode, int resultCode, Intent data) {
+    public void handleResult(int requestCode, int resultCode, Intent data) {
         if (DEBUG) Timber.v("onActivityResult");
-        
-        if (collected())
-            return NOT_HANDLED;
 
-        if (requestCode != CAPTURE_IMAGE && requestCode != ADD_USERS && data == null)
-        {
-            return NOT_HANDLED;
-        }
-
-        // Just to be sure its init.
-        uiHelper.initCardToast();
-
-        try {
-            if (send && (requestCode == PHOTO_PICKER_ID || requestCode == PICK_LOCATION || requestCode == CAPTURE_IMAGE) && resultCode == Activity.RESULT_OK) {
-                uiHelper.showProgressCard("Sending...");
-            }
-        } catch (Exception e) {
-//            e.printStackTrace();
-        }
+        if (!hasActivity()) return;
 
         /* Pick photo logic*/
         if (requestCode == PHOTO_PICKER_ID)
         {
-            // Reset
-            lat = 0; lng = 0;
-
-            switch (resultCode)
-            {
-                case Activity.RESULT_OK:
-
-                    Uri uri = data.getData();
-                    mFileName = DaoCore.generateEntity();
-
-                    // If enabled we will save the image to the app 
-                    // directory in gallery else we will save it in the cache dir.
-                    File dir;
-                    if (BDefines.Options.SaveImagesToDir)
-                        dir = Utils.ImageSaver.getAlbumStorageDir(activity.get(), Utils.ImageSaver.IMAGE_DIR_NAME);
-                    else 
-                        dir = this.activity.get().getCacheDir();
-
-                    if (dir == null)
-                    {
-                        uiHelper.dismissProgressCard();
-                        uiHelper.showAlertToast(R.string.unable_to_fetch_image);
-                        return ERROR;
-                    }
-                    
-                    Uri outputUri = Uri.fromFile(new File(dir, mFileName  + ".jpeg"));
-
-                    crop = new Cropper(uri);
-
-                    Intent cropIntent = crop.getAdjustIntent(this.activity.get(), outputUri);
-                    int request = Crop.REQUEST_CROP + PHOTO_PICKER_ID;
-
-                    activity.get().startActivityForResult(cropIntent, request);
-
-                    return HANDELD;
-
-                case Activity.RESULT_CANCELED:
-                    uiHelper.dismissProgressCard();
-                    return HANDELD;
-            }
+            processPickedPhoto(resultCode, data);
         }
         else  if (requestCode == Crop.REQUEST_CROP + PHOTO_PICKER_ID) {
-            if (resultCode == Crop.RESULT_ERROR)
+            processCroppedPhoto(resultCode, data);
+        }
+        /* Pick location logic*/
+        else if (requestCode == PICK_LOCATION)
+        {
+            processPickedLocation(resultCode, data);
+        }
+        /* Capture image logic*/
+        else if (requestCode == CAPTURE_IMAGE)
+        {
+            if (resultCode == Activity.RESULT_OK) {
+                sendImageMessage(selectedFilePath);
+            }
+        }
+    }
+    private void processCroppedPhoto(int resultCode, Intent data){
+        if (resultCode == Crop.RESULT_ERROR)
+        {
+            uiHelper.dismissProgressCard();
+            return;
+        }
+
+        try
+        {
+            // If enabled we will save the image to the app
+            // directory in gallery else we will save it in the cache dir.
+            File dir;
+            if (BDefines.Options.SaveImagesToDir)
+                dir = Utils.ImageSaver.getAlbumStorageDir(activity.get(), Utils.ImageSaver.IMAGE_DIR_NAME);
+            else
+                dir = this.activity.get().getCacheDir();
+
+            if (dir == null)
             {
                 uiHelper.dismissProgressCard();
-                return ERROR;
+                uiHelper.showAlertToast(R.string.unable_to_fetch_image);
+                return;
             }
 
-            try
-            {
-                // If enabled we will save the image to the app 
+            File image = new File(dir, mFileName  + ".jpeg");
+
+            selectedFilePath = image.getPath();
+
+            // Scanning the image so it would be visible in the gallery images.
+            if (BDefines.Options.SaveImagesToDir)
+                ImageUtils.scanFilePathForGallery(activity.get(), selectedFilePath);
+
+            sendImageMessage(image.getPath());
+        }
+        catch (NullPointerException e){
+            uiHelper.showAlertToast(R.string.unable_to_fetch_image);
+        }
+    }
+    private void processPickedPhoto(int resultCode, Intent data){
+
+        switch (resultCode)
+        {
+            case Activity.RESULT_OK:
+
+                Uri uri = data.getData();
+                mFileName = DaoCore.generateEntity();
+
+                // If enabled we will save the image to the app
                 // directory in gallery else we will save it in the cache dir.
                 File dir;
                 if (BDefines.Options.SaveImagesToDir)
@@ -458,88 +447,52 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
                 {
                     uiHelper.dismissProgressCard();
                     uiHelper.showAlertToast(R.string.unable_to_fetch_image);
-                    return ERROR;
-                }
-                
-                File image = new File(dir, mFileName  + ".jpeg");
-
-                selectedFilePath = image.getPath();
-
-                // Scanning the image so it would be visible in the gallery images.
-                if (BDefines.Options.SaveImagesToDir)
-                    ImageUtils.scanFilePathForGallery(activity.get(), selectedFilePath);
-                
-                sendImageMessage(image.getPath());
-                
-                return HANDELD;
-            }
-            catch (NullPointerException e){
-                uiHelper.showAlertToast(R.string.unable_to_fetch_image);
-                return ERROR;
-            }
-        }
-
-        /* Pick location logic*/
-        else if (requestCode == PICK_LOCATION)
-        {
-            // Reset
-            lat = 0; lng = 0;
-
-            if (resultCode == Activity.RESULT_CANCELED) {
-                if (data.getExtras() == null)
-                    return ERROR;
-
-                if (data.getExtras().containsKey(ChatSDKLocationActivity.ERROR))
-                    uiHelper.showAlertToast(data.getExtras().getString(ChatSDKLocationActivity.ERROR));
-
-                return ERROR;
-            }
-            else if (resultCode == Activity.RESULT_OK) {
-                if (DEBUG)
-                    Timber.d("Zoom level: %s", data.getFloatExtra(ChatSDKLocationActivity.ZOOM, 0.0f));
-                // Send the message, Params Latitude, Longitude, Base64 Representation of the image of the location, threadId.
-                if (send)
-                {
-                    sendLocationMessage(data);
-                }
-                else
-                {
-                    lat = data.getDoubleExtra(ChatSDKLocationActivity.LANITUDE, 0);
-                    lng = data.getDoubleExtra(ChatSDKLocationActivity.LONGITUDE, 0);
-                    selectedFilePath = data.getExtras().getString(ChatSDKLocationActivity.SNAP_SHOT_PATH, null);
+                    return;
                 }
 
-                return HANDELD;
-            }
+                Uri outputUri = Uri.fromFile(new File(dir, mFileName  + ".jpeg"));
+
+                crop = new Cropper(uri);
+
+                Intent cropIntent = crop.getAdjustIntent(this.activity.get(), outputUri);
+                int request = Crop.REQUEST_CROP + PHOTO_PICKER_ID;
+
+                activity.get().startActivityForResult(cropIntent, request);
+
+                return;
+
+            case Activity.RESULT_CANCELED:
+                uiHelper.dismissProgressCard();
         }
-        /* Capture image logic*/
-        else if (requestCode == CAPTURE_IMAGE)
-        {
-            // Reset
-            lat = 0; lng = 0;
+    }
 
-            if (resultCode == Activity.RESULT_OK) {
+    private void processPickedLocation(int resultCode, Intent data){
+        if (resultCode == Activity.RESULT_CANCELED) {
+            if (data.getExtras() == null)
+                return;
 
-                if (send)
-                    sendImageMessage(selectedFilePath);
-
-                return HANDELD;
-            }
+            if (data.getExtras().containsKey(ChatSDKLocationActivity.ERROR))
+                uiHelper.showAlertToast(data.getExtras().getString(ChatSDKLocationActivity.ERROR));
         }
+        else if (resultCode == Activity.RESULT_OK) {
+            if (DEBUG)
+                Timber.d("Zoom level: %s", data.getFloatExtra(ChatSDKLocationActivity.ZOOM, 0.0f));
+            // Send the message, Params Latitude, Longitude, Base64 Representation of the image of the location, threadId.
 
-        return NOT_HANDLED;
+            sendLocationMessage(data);
+        }
+    }
+
+    private void sendingMessageToast(){
+        // Just to be sure it's initialized.
+        uiHelper.initCardToast();
+        uiHelper.showProgressCard("Sending...");
     }
 
     public void onSavedInstanceBundle(Bundle outState){
         if (StringUtils.isNotEmpty(selectedFilePath))
         {
             outState.putString(SELECTED_FILE_PATH, selectedFilePath);
-
-            if (lng != 0)
-            {
-                outState.putDouble(LNG, lng);
-                outState.putDouble(LAT, lat);
-            }
         }
 
         outState.putInt(LOADED_MESSAGES_AMOUNT, loadedMessagesAmount);
@@ -557,22 +510,18 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
         if (savedInstanceState == null)
             return;
         
-        if (collected())
+        if (!hasActivity())
             return;
 
         selectedFilePath = savedInstanceState.getString(SELECTED_FILE_PATH);
         savedInstanceState.remove(SELECTED_FILE_PATH);
 
-        lng = savedInstanceState.getDouble(LNG, 0);
-        lat = savedInstanceState.getDouble(LAT, 0);
 
         shared = savedInstanceState.getBoolean(SHARED);
 
         loadedMessagesAmount = savedInstanceState.getInt(LOADED_MESSAGES_AMOUNT, 0);
 
         readCount = savedInstanceState.getInt(READ_COUNT);
-        savedInstanceState.remove(LNG);
-        savedInstanceState.remove(LAT);
 
         mFileName = savedInstanceState.getString(FILE_NAME);
         SuperCardToast.onRestoreState(savedInstanceState, activity.get());
@@ -581,12 +530,12 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     
     @Override
     public void onSendPressed(String text) {
-        sentMessageWithText();
+        sendMessageWithText();
     }
 
     @Override
     public void onLocationPressed() {
-        if (collected())
+        if (!hasActivity())
             return;
         
         Intent intent = new Intent(activity.get(), uiHelper.shareLocationActivity);
@@ -596,7 +545,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     @Override
     public void onTakePhotoPressed() {
         
-        if (collected())
+        if (!hasActivity())
             return;
         
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -624,7 +573,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     @Override
     public void onPickImagePressed() {
         
-        if (collected())
+        if (!hasActivity())
             return;
 
         Intent intent = new Intent();
@@ -642,15 +591,15 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
 
 
     /** Send text message logic.*/
-    public  void sentMessageWithText(){
-        sentMessageWithText(messageBoxView.getMessageText(), true);
+    public  void sendMessageWithText(){
+        sendMessageWithText(messageBoxView.getMessageText(), true);
     }
 
     /** Send text message
      * FIXME the messages does not added to the row anymore because we are getting the date from firebase server. Need to find a different way, Maybe new item mode for the row that wont have any date.
      * @param text the text to send.
      * @param clearEditText if true clear the message edit text.*/
-    public  void sentMessageWithText(String text, boolean clearEditText){
+    public  void sendMessageWithText(String text, boolean clearEditText){
         if (DEBUG) Timber.v("sendTextMessage, Text: %s, Clear: %s", text, String.valueOf(clearEditText));
 
         if (StringUtils.isEmpty(text) || StringUtils.isBlank(text))
@@ -692,7 +641,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
      * @param filePath the path to the image file that need to be sent.*/
     public  void sendImageMessage(final String filePath){
         if (DEBUG) Timber.v("sendImageMessage, Path: %s", filePath);
-        
+        sendingMessageToast();
         BNetworkManager.sharedManager().getNetworkAdapter().sendMessageWithImage(filePath, thread.getId())
                 .then(new DoneCallback<BMessage>() {
                     @Override
@@ -720,6 +669,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     }
 
     public void sendLocationMessage(final Intent data){
+        sendingMessageToast();
         BNetworkManager.sharedManager().getNetworkAdapter().sendMessageWithLocation(data.getExtras().getString(ChatSDKLocationActivity.SNAP_SHOT_PATH, null),
                 new LatLng(data.getDoubleExtra(ChatSDKLocationActivity.LANITUDE, 0), data.getDoubleExtra(ChatSDKLocationActivity.LONGITUDE, 0)),
                 thread.getId())
@@ -757,7 +707,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     public void checkIfWantToShare(Intent intent){
         if (DEBUG) Timber.v("checkIfWantToShare");
 
-        if (collected())
+        if (!hasActivity())
             return;
 
         if (shared)
@@ -801,7 +751,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
             // removing the key so we wont send again,
             intent.getExtras().remove(SHARED_TEXT);
 
-            sentMessageWithText(text, false);
+            sendMessageWithText(text, false);
 
             intent.removeExtra(SHARED_TEXT);
 
@@ -859,19 +809,11 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     }
 
     public boolean isLoactionMedia(){
-        return StringUtils.isNotEmpty(getSelectedFilePath()) && StringUtils.isNotBlank(getSelectedFilePath()) && lat != 0 && lng != 0;
+        return StringUtils.isNotEmpty(getSelectedFilePath()) && StringUtils.isNotBlank(getSelectedFilePath());
     }
 
     public void setThread(BThread thread) {
         this.thread = thread;
-    }
-
-    public double getLng() {
-        return lng;
-    }
-
-    public double getLat() {
-        return lat;
     }
 
     public void setListMessages(ListView listMessages) {
@@ -894,8 +836,8 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
         return readCount;
     }
     
-    public boolean collected(){
-        return  activity == null || activity.get() == null;
+    public boolean hasActivity(){
+        return  activity != null && activity.get() != null;
         
     }
 

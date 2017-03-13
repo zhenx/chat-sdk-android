@@ -11,8 +11,8 @@ import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseEventsManage
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebasePaths;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.Utils.sorter.MessageSorter;
-import com.braunster.chatsdk.dao.BLinkData;
-import com.braunster.chatsdk.dao.BLinkDataDao;
+import com.braunster.chatsdk.dao.UserThreadLink;
+import com.braunster.chatsdk.dao.UserThreadLinkDao;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BMessageDao;
 import com.braunster.chatsdk.dao.BThread;
@@ -63,6 +63,11 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
     
     public BThreadWrapper(String entityId){
         this(DaoCore.fetchOrCreateEntityWithEntityID(BThread.class, entityId));
+    }
+
+    @Override
+    public BThread getModel(){
+        return DaoCore.fetchEntityWithEntityID(BThread.class, entityId);
     }
 
     /**
@@ -178,94 +183,93 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         
         BUser user = getNetworkAdapter().currentUserModel();
 
-        if (model.getTypeSafely() == BThreadEntity.Type.Private)
+        if (model.getTypeSafely() != BThreadEntity.Type.Private) return deferred.promise();
+
+        List<BMessage> messages = DaoCore.fetchEntitiesWithProperty(BMessage.class, BMessageDao.Properties.ThreadDaoId, model.getId());
+
+        for (BMessage m : messages) {
+            DaoCore.deleteEntity(m);
+        }
+
+        DaoCore.updateEntity(model);
+
+        if (model.getUsers().size() > 2)
         {
+            // Removing the thread from the current user thread ref.
+            DatabaseReference userThreadRef = FirebasePaths.firebaseRef()
+                .child(user.getBPath().getPath())
+                .child(model.getBPath().getPath());
 
-            List<BMessage> messages = DaoCore.fetchEntitiesWithProperty(BMessage.class, BMessageDao.Properties.OwnerThread, model.getId());
+            // Stop listening to thread events, Details change, User added and incoming messages.
+            off();
+            messagesOff();
+            usersOff();
 
-            for (BMessage m : messages)
-                DaoCore.deleteEntity(m);
+            // Removing the thread from the user threads list.
+            userThreadRef.removeValue(new DatabaseReference.CompletionListener() {
+                @Override
+                public void onComplete(DatabaseError error, DatabaseReference firebase) {
+                    // Delete the thread if no error occurred when deleting from firebase.
+                    if (error == null)
+                    {
+                        // Adding a leave value to the user on the thread path so other users will know this user has left.
+                        DatabaseReference threadUserRef = FirebasePaths.threadRef(entityId)
+                            .child(BFirebaseDefines.Path.BUsersPath)
+                            .child(getNetworkAdapter().currentUserModel().getEntityID())
+                            .child(BDefines.Keys.BLeaved);
+
+                        threadUserRef.setValue(true);
+
+                        List<UserThreadLink> list =  DaoCore.fetchEntitiesWithProperty(UserThreadLink.class, UserThreadLinkDao.Properties.BThreadDaoId, model.getId());
+
+                        DaoCore.deleteEntity(model);
+
+                        // Deleting all data relevant to the thread from the db.
+                        for (UserThreadLink d : list)
+                            DaoCore.deleteEntity(d);
+
+                        if (DEBUG)
+                        {
+                            BThread deletedThread = DaoCore.fetchEntityWithEntityID(BThread.class, entityId);
+                            if (deletedThread == null)
+                                Timber.d("Thread deleted successfully.");
+                            else Timber.d("Thread was not deleted.");
+                        }
+
+                        deferred.resolve(null);
+
+                    } else
+                    {
+                        deferred.reject(getFirebaseError(error));
+                    }
+                }
+            });
+        }
+        else
+        {
+            DatabaseReference threadUserRef = FirebasePaths.threadRef(entityId)
+                .child(BFirebaseDefines.Path.BUsersPath)
+                .child(getNetworkAdapter().currentUserModel().getEntityID())
+                .child(BDefines.Keys.BDeleted);
+
+            // Set the deleted value in firebase
+            threadUserRef.setValue(ServerValue.TIMESTAMP);
+
+            model.setDeleted(true);
 
             DaoCore.updateEntity(model);
+            DaoCore.deleteEntity(model);
 
-            if (model.getUsers().size() > 2)
-            {
-                // Removing the thread from the current user thread ref.
-                DatabaseReference userThreadRef = FirebasePaths.firebaseRef()
-                    .child(user.getBPath().getPath())
-                    .child(model.getBPath().getPath());
-
-                // Stop listening to thread events, Details change, User added and incoming messages.
-                off();
-                messagesOff();
-                usersOff();
-
-                // Removing the thread from the user threads list.
-                userThreadRef.removeValue(new DatabaseReference.CompletionListener() {
-                    @Override
-                    public void onComplete(DatabaseError error, DatabaseReference firebase) {
-                        // Delete the thread if no error occurred when deleting from firebase.
-                        if (error == null)
-                        {
-                            // Adding a leave value to the user on the thread path so other users will know this user has left.
-                            DatabaseReference threadUserRef = FirebasePaths.threadRef(entityId)
-                                .child(BFirebaseDefines.Path.BUsersPath)
-                                .child(getNetworkAdapter().currentUserModel().getEntityID())
-                                .child(BDefines.Keys.BLeaved);
-                            
-                            threadUserRef.setValue(true);
-
-                            List<BLinkData> list =  DaoCore.fetchEntitiesWithProperty(BLinkData.class, BLinkDataDao.Properties.ThreadID, model.getId());
-
-                            DaoCore.deleteEntity(model);
-
-                            // Deleting all data relevant to the thread from the db.
-                            for (BLinkData d : list)
-                                DaoCore.deleteEntity(d);
-
-                            if (DEBUG)
-                            {
-                                BThread deletedThread = DaoCore.fetchEntityWithEntityID(BThread.class, entityId);
-                                if (deletedThread == null)
-                                    Timber.d("Thread deleted successfully.");
-                                else Timber.d("Thread was not deleted.");
-                            }
-
-                            deferred.resolve(null);
-                            
-                        } else
-                        {
-                            deferred.reject(getFirebaseError(error));
-                        }
-                    }
-                });
-            }
-            else
-            {
-                DatabaseReference threadUserRef = FirebasePaths.threadRef(entityId)
-                    .child(BFirebaseDefines.Path.BUsersPath)
-                    .child(getNetworkAdapter().currentUserModel().getEntityID())
-                    .child(BDefines.Keys.BDeleted);
-
-                threadUserRef.setValue(ServerValue.TIMESTAMP);
-
-                model.setDeleted(true);
-
-                DaoCore.updateEntity(model);
-
-                // Set the deleted value in fireabase
-                deferred.resolve(null);
-            }
+            deferred.resolve(null);
         }
         
         return deferred.promise();
     }
 
-    public Promise<Void, BError, Void> recoverThread(){
+    public Promise<BThread, BError, Void> recoverPrivateThread(){
 
-        if (DEBUG) Timber.v("recoverThread");
-        final Deferred<Void, BError, Void> deferred = new DeferredObject<>();
-
+        if (DEBUG) Timber.v("recoverPrivateThread");
+        final Deferred<BThread, BError, Void> deferred = new DeferredObject<>();
         // Removing the deleted value from firebase.
         DatabaseReference threadUserRef = FirebasePaths.threadRef(entityId)
             .child(BFirebaseDefines.Path.BUsersPath)
@@ -274,14 +278,30 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
 
         threadUserRef.removeValue();
 
-        this.model.setDeleted(false);
-        
+        this.getModel().setDeleted(false);
+        this.getModel().setType(BThread.Type.Private);
+        final BThread toBeUpdated = this.getModel();
+        this.loadMessages().done(new DoneCallback<List<BMessage>>() {
+            @Override
+            public void onDone(List<BMessage> bMessages) {
+                toBeUpdated.setMessages(bMessages);
+                DaoCore.updateEntity(toBeUpdated);
+                deferred.resolve(toBeUpdated);
+            }
+        }).fail(new FailCallback<Void>() {
+            @Override
+            public void onFail(Void aVoid) {
+                deferred.resolve(toBeUpdated);
+            }
+        });
         DaoCore.updateEntity(this.model);
         
         return deferred.promise();
         
     }
-    public Promise<List<BMessage>, Void, Void> loadMoreMessages(final int numberOffMessages){
+
+    // TODO: Replace this with the loadMessages method (need to figure out the date ref first)
+    public Promise<List<BMessage>, Void, Void> loadMoreMessages(final int numberOfMessages){
 
         if (DEBUG) Timber.v("loadMoreMessages");
         final Deferred<List<BMessage>, Void, Void> deferred = new DeferredObject<>();
@@ -293,7 +313,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         if (messages.size() > 0)
             earliestMessage = messages.get(0);
             
-        // If we have a message in the database then we use the earliest
+        // If we have a message in the database then we use the latest
         if (earliestMessage != null)
         {
             if(DEBUG) Timber.d("Msg: %s", earliestMessage.getText());
@@ -305,14 +325,14 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         List<BMessage> list ;
 
         QueryBuilder<BMessage> qb = DaoCore.daoSession.queryBuilder(BMessage.class);
-        qb.where(BMessageDao.Properties.OwnerThread.eq(model.getId()));
+        qb.where(BMessageDao.Properties.ThreadDaoId.eq(model.getId()));
 
         // Making sure no null messages infected the sort.
         qb.where(BMessageDao.Properties.Date.isNotNull());
 
         qb.where(BMessageDao.Properties.Date.lt(messageDate));
 
-        qb.limit(numberOffMessages + 1);
+        qb.limit(numberOfMessages + 1);
         qb.orderDesc(BMessageDao.Properties.Date);
 
         list = qb.list();
@@ -334,7 +354,12 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
             // Limit to # defined in BFirebaseDefines
             // We add one becase we'll also be returning the last message again
             // FIXME not sure if to use limitToFirst or limitToLast
-            Query msgQuery = messageRef.endAt(messageDate.getTime()).limitToLast(numberOffMessages + 1);
+            Query msgQuery;
+            if(numberOfMessages == -1){
+                msgQuery = messageRef;
+            }else {
+                msgQuery = messageRef.endAt(messageDate.getTime()).limitToLast(numberOfMessages + 1);
+            }
 
             msgQuery.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
@@ -348,9 +373,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
                         BMessageWrapper msg;
                         for (String key : ((Map<String, Object>) snapshot.getValue()).keySet())
                         {
-                            msg = new BMessageWrapper(snapshot.child(key));
-                         
-                            msg.model.setBThreadOwner(BThreadWrapper.this.model);
+                            msg = new BMessageWrapper(BThreadWrapper.this.getModel(), snapshot.child(key));
                             
                             DaoCore.updateEntity(msg.model);
                             
@@ -374,6 +397,61 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         
         return deferred.promise();
     }
+
+    public Promise<List<BMessage>, Void, Void> loadMessages(){
+        return loadMessages(-1);
+    }
+
+     public Promise<List<BMessage>, Void, Void> loadMessages(Integer lastNMessages){
+        final Deferred<List<BMessage>, Void, Void> deferred = new DeferredObject<>();
+
+        DatabaseReference messageRef = FirebasePaths.threadRef(model.getEntityID())
+                .child(BFirebaseDefines.Path.BMessagesPath);
+
+        Query msgQuery;
+        // If number of messages set to retrieve is -1, retrieve all messages
+        if(lastNMessages == -1){
+            msgQuery = messageRef;
+        }else {
+            msgQuery = messageRef.limitToLast(lastNMessages);
+        }
+
+        msgQuery.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.getValue() != null)
+                {
+                    if (DEBUG) Timber.d("MessagesSnapShot: %s", snapshot.getValue().toString());
+
+                    List<BMessage> msgs = new ArrayList<BMessage>();
+
+                    BMessageWrapper msg;
+                    for (String key : ((Map<String, Object>) snapshot.getValue()).keySet())
+                    {
+                        msg = new BMessageWrapper(BThreadWrapper.this.getModel() ,snapshot.child(key));
+
+                        DaoCore.updateEntity(msg.model);
+
+                        msgs.add(msg.model);
+                    }
+                    deferred.resolve(msgs);
+                }
+                else
+                {
+                    deferred.reject(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+                deferred.reject(null);
+            }
+        });
+
+        return deferred.promise();
+    }
+
+
 
     /**
      * Converting the thread details to a map object.

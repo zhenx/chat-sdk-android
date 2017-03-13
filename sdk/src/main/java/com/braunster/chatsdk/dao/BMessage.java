@@ -1,5 +1,7 @@
 package com.braunster.chatsdk.dao;
 
+import java.util.List;
+
 import com.braunster.chatsdk.dao.DaoSession;
 import de.greenrobot.dao.DaoException;
 
@@ -34,8 +36,8 @@ public class BMessage extends BMessageEntity  {
     private Integer type;
     private Integer status;
     private Integer delivered;
-    private Long OwnerThread;
     private Long Sender;
+    private Long threadDaoId;
 
     /** Used to resolve relations */
     private transient DaoSession daoSession;
@@ -43,11 +45,11 @@ public class BMessage extends BMessageEntity  {
     /** Used for active entity operations. */
     private transient BMessageDao myDao;
 
-    private BThread BThreadOwner;
-    private Long BThreadOwner__resolvedKey;
-
     private BUser BUserSender;
     private Long BUserSender__resolvedKey;
+
+    private BThread thread;
+    private Long thread__resolvedKey;
 
 
     // KEEP FIELDS - put your custom fields here
@@ -66,7 +68,7 @@ public class BMessage extends BMessageEntity  {
         this.id = id;
     }
 
-    public BMessage(Long id, String entityID, java.util.Date date, Boolean isRead, String resources, String resourcesPath, String text, String imageDimensions, Integer type, Integer status, Integer delivered, Long OwnerThread, Long Sender) {
+    public BMessage(Long id, String entityID, java.util.Date date, Boolean isRead, String resources, String resourcesPath, String text, String imageDimensions, Integer type, Integer status, Integer delivered, Long Sender, Long threadDaoId) {
         this.id = id;
         this.entityID = entityID;
         this.date = date;
@@ -78,8 +80,8 @@ public class BMessage extends BMessageEntity  {
         this.type = type;
         this.status = status;
         this.delivered = delivered;
-        this.OwnerThread = OwnerThread;
         this.Sender = Sender;
+        this.threadDaoId = threadDaoId;
     }
 
     /** called by internal mechanisms, do not call yourself. */
@@ -176,14 +178,6 @@ public class BMessage extends BMessageEntity  {
         this.delivered = delivered;
     }
 
-    public Long getOwnerThread() {
-        return OwnerThread;
-    }
-
-    public void setOwnerThread(Long OwnerThread) {
-        this.OwnerThread = OwnerThread;
-    }
-
     public Long getSender() {
         return Sender;
     }
@@ -192,29 +186,12 @@ public class BMessage extends BMessageEntity  {
         this.Sender = Sender;
     }
 
-    /** To-one relationship, resolved on first access. */
-    public BThread getBThreadOwner() {
-        Long __key = this.OwnerThread;
-        if (BThreadOwner__resolvedKey == null || !BThreadOwner__resolvedKey.equals(__key)) {
-            if (daoSession == null) {
-                throw new DaoException("Entity is detached from DAO context");
-            }
-            BThreadDao targetDao = daoSession.getBThreadDao();
-            BThread BThreadOwnerNew = targetDao.load(__key);
-            synchronized (this) {
-                BThreadOwner = BThreadOwnerNew;
-            	BThreadOwner__resolvedKey = __key;
-            }
-        }
-        return BThreadOwner;
+    public Long getThreadDaoId() {
+        return threadDaoId;
     }
 
-    public void setBThreadOwner(BThread BThreadOwner) {
-        synchronized (this) {
-            this.BThreadOwner = BThreadOwner;
-            OwnerThread = BThreadOwner == null ? null : BThreadOwner.getId();
-            BThreadOwner__resolvedKey = OwnerThread;
-        }
+    public void setThreadDaoId(Long threadDaoId) {
+        this.threadDaoId = threadDaoId;
     }
 
     /** To-one relationship, resolved on first access. */
@@ -239,6 +216,31 @@ public class BMessage extends BMessageEntity  {
             this.BUserSender = BUserSender;
             Sender = BUserSender == null ? null : BUserSender.getId();
             BUserSender__resolvedKey = Sender;
+        }
+    }
+
+    /** To-one relationship, resolved on first access. */
+    public BThread getThread() {
+        Long __key = this.threadDaoId;
+        if (thread__resolvedKey == null || !thread__resolvedKey.equals(__key)) {
+            if (daoSession == null) {
+                throw new DaoException("Entity is detached from DAO context");
+            }
+            BThreadDao targetDao = daoSession.getBThreadDao();
+            BThread threadNew = targetDao.load(__key);
+            synchronized (this) {
+                thread = threadNew;
+            	thread__resolvedKey = __key;
+            }
+        }
+        return thread;
+    }
+
+    public void setThread(BThread thread) {
+        synchronized (this) {
+            this.thread = thread;
+            threadDaoId = thread == null ? null : thread.getId();
+            thread__resolvedKey = threadDaoId;
         }
     }
 
@@ -269,12 +271,12 @@ public class BMessage extends BMessageEntity  {
     // KEEP METHODS - put your custom methods here
     @Override
     public BPath getBPath() {
-        if (getBThreadOwner() == null)
+        if (getThread() == null)
         {
             if (DEBUG) Timber.e("Owner Thread is null");
             return null;
         }
-        return getBThreadOwner().getBPath().addPathComponent(BFirebaseDefines.Path.BMessagesPath, entityID);
+        return getThread().getBPath().addPathComponent(BFirebaseDefines.Path.BMessagesPath, entityID);
     }
 
     @Override
@@ -332,7 +334,6 @@ public class BMessage extends BMessageEntity  {
     public String toString() {
         return String.format("BMessage, id: %s, type: %s, Sender: %s", id, type, getBUserSender());
     }
-
     // KEEP METHODS END
 
 }

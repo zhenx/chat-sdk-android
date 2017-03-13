@@ -7,51 +7,49 @@ import de.greenrobot.dao.DaoException;
 
 // KEEP INCLUDES - put your custom includes here
 import com.braunster.chatsdk.dao.entities.Entity;
-
-import de.greenrobot.dao.DaoException;
 // KEEP INCLUDES END
 /**
- * Entity mapped to table BLINK_DATA.
+ * Entity mapped to table USER_THREAD_LINK.
  */
-public class BLinkData extends Entity  {
+public class UserThreadLink extends Entity  {
 
     private Long id;
-    private Long UserID;
-    private Long ThreadID;
+    private Long BUserDaoId;
+    private Long BThreadDaoId;
 
     /** Used to resolve relations */
     private transient DaoSession daoSession;
 
     /** Used for active entity operations. */
-    private transient BLinkDataDao myDao;
+    private transient UserThreadLinkDao myDao;
 
-    private BUser bUser;
-    private Long bUser__resolvedKey;
+    private BUser BUser;
+    private Long BUser__resolvedKey;
 
-    private BThread bThread;
-    private Long bThread__resolvedKey;
+    private BThread BThread;
+    private Long BThread__resolvedKey;
 
 
     // KEEP FIELDS - put your custom fields here
     // KEEP FIELDS END
 
-    public BLinkData() {
+    public UserThreadLink() {
     }
 
-    public BLinkData(Long id) {
+    public UserThreadLink(Long id) {
         this.id = id;
     }
 
-    public BLinkData(Long id, Long UserID, Long ThreadID) {
+    public UserThreadLink(Long id, Long BUserDaoId, Long BThreadDaoId) {
         this.id = id;
-        this.UserID = UserID;
-        this.ThreadID = ThreadID;
+        this.BUserDaoId = BUserDaoId;
+        this.BThreadDaoId = BThreadDaoId;
     }
 
     /** called by internal mechanisms, do not call yourself. */
     public void __setDaoSession(DaoSession daoSession) {
         this.daoSession = daoSession;
-        myDao = daoSession != null ? daoSession.getBLinkDataDao() : null;
+        myDao = daoSession != null ? daoSession.getUserThreadLinkDao() : null;
     }
 
     public Long getId() {
@@ -62,69 +60,69 @@ public class BLinkData extends Entity  {
         this.id = id;
     }
 
-    public Long getUserID() {
-        return UserID;
+    public Long getBUserDaoId() {
+        return BUserDaoId;
     }
 
-    public void setUserID(Long UserID) {
-        this.UserID = UserID;
+    public void setBUserDaoId(Long BUserDaoId) {
+        this.BUserDaoId = BUserDaoId;
     }
 
-    public Long getThreadID() {
-        return ThreadID;
+    public Long getBThreadDaoId() {
+        return BThreadDaoId;
     }
 
-    public void setThreadID(Long ThreadID) {
-        this.ThreadID = ThreadID;
+    public void setBThreadDaoId(Long BThreadDaoId) {
+        this.BThreadDaoId = BThreadDaoId;
     }
 
     /** To-one relationship, resolved on first access. */
     public BUser getBUser() {
-        Long __key = this.UserID;
-        if (bUser__resolvedKey == null || !bUser__resolvedKey.equals(__key)) {
+        Long __key = this.BUserDaoId;
+        if (BUser__resolvedKey == null || !BUser__resolvedKey.equals(__key)) {
             if (daoSession == null) {
                 throw new DaoException("Entity is detached from DAO context");
             }
             BUserDao targetDao = daoSession.getBUserDao();
-            BUser bUserNew = targetDao.load(__key);
+            BUser BUserNew = targetDao.load(__key);
             synchronized (this) {
-                bUser = bUserNew;
-            	bUser__resolvedKey = __key;
+                BUser = BUserNew;
+            	BUser__resolvedKey = __key;
             }
         }
-        return bUser;
+        return BUser;
     }
 
-    public void setBUser(BUser bUser) {
+    public void setBUser(BUser BUser) {
         synchronized (this) {
-            this.bUser = bUser;
-            UserID = bUser == null ? null : bUser.getId();
-            bUser__resolvedKey = UserID;
+            this.BUser = BUser;
+            BUserDaoId = BUser == null ? null : BUser.getId();
+            BUser__resolvedKey = BUserDaoId;
         }
     }
 
     /** To-one relationship, resolved on first access. */
     public BThread getBThread() {
-        Long __key = this.ThreadID;
-        if (bThread__resolvedKey == null || !bThread__resolvedKey.equals(__key)) {
+        Long __key = this.BThreadDaoId;
+        if (BThread__resolvedKey == null || !BThread__resolvedKey.equals(__key)) {
             if (daoSession == null) {
                 throw new DaoException("Entity is detached from DAO context");
             }
             BThreadDao targetDao = daoSession.getBThreadDao();
-            BThread bThreadNew = targetDao.load(__key);
+            BThread BThreadNew = targetDao.load(__key);
             synchronized (this) {
-                bThread = bThreadNew;
-            	bThread__resolvedKey = __key;
+                BThread = BThreadNew;
+            	BThread__resolvedKey = __key;
             }
         }
-        return bThread;
+        return BThread;
     }
 
-    public void setBThread(BThread bThread) {
+    public void setBThread(BThread BThread) {
         synchronized (this) {
-            this.bThread = bThread;
-            ThreadID = bThread == null ? null : bThread.getId();
-            bThread__resolvedKey = ThreadID;
+            this.BThread = BThread;
+            BThreadDaoId = BThread == null ? null : BThread.getId();
+            BThread__resolvedKey = BThreadDaoId;
         }
     }
 
