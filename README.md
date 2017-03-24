@@ -33,6 +33,7 @@ The Chat SDK has a number of additional modules that can easily be installed inc
 - [Location based chat](http://chatsdk.co/downloads/location-based-chat/)
 - [Audio messages](http://chatsdk.co/downloads/audio-messages/)
 - [Video messages](http://chatsdk.co/downloads/video-messages/)
+- [Contact book integration](http://chatsdk.co/downloads/contact-book-integration/)
 - [Push notifications](http://chatsdk.co/downloads/backendless-push-notifications/)
 
 ## Get involved!
@@ -172,7 +173,7 @@ All the code for Push Notifications is already included in the Chat SDK. Getting
 >**NOTE:**  
 >If you want push notifications to work in Development mode make sure to configure them in your provisioning profile for both development and production.
 
-###Google Maps
+### Google Maps
 
 Copy the `permission.MAPS_RECEIVE` declared in the **app** manifest. Notice that you need to replace `com.braunster` with your package name.
 
@@ -305,7 +306,7 @@ dependencies {
 
 Sync Gradle again and we are ready to launch the Chat SDK activity. 
 
-##Launching the Chat SDK login activity
+## Launching the Chat SDK login activity
 
 Open up your app's main activity. It should be in **App** -> **java** -> **Your app namespace** -> **Main Activity**
 
