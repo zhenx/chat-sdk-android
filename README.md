@@ -167,6 +167,9 @@ Firebase allows users to login with many different account (Email, Anonymous, Fa
 
 All the code for Push Notifications is already included in the Chat SDK. Getting them working only requires a small amount of configuration. For help regarding this, you can take a look at the [Backendless guide](https://backendless.com/documentation/messaging/android/messaging_push_notification_setup_androi.htm).
 
+>**NOTE:**
+>The app currently uses Backendless 3.0. Make sure that Backendless 3 is selected from the Backendless dashboard.  
+
 >**NOTE:**  
 >Some of the steps in this tutorial include adding code to the app, these steps should be unnecessary as they have already been added to the project.
 
