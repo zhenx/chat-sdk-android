@@ -13,9 +13,9 @@ import de.greenrobot.daogenerator.ToOne;
 public class Generator {
 
     // TODO set not null attribute to the properties that needs it.
-    private static String outputDir = "../sdk/src/main/java";
+    private static String outputDir = "sdk/src/main/java";
 
-    private static Entity user, linkedAccount, thread, message, threadUsers, linkedContact, follower;
+    private static Entity user, linkedAccount, thread, message, userThreadLink, followerLink;
 
     public static void main(String args[]) throws Exception{
 //        System.out.print("Generating... " + args[0].toString());
@@ -24,14 +24,14 @@ public class Generator {
         schema.enableKeepSectionsByDefault();
 
         addUser(schema);
-        addLinkedAccounts(schema);
-        addLinkedContact(schema);
         addMessages(schema);
         addThread(schema);
-        addThreadUsers(schema);
+        addLinkedAccounts(schema);
+        addContactLink(schema);
+        addUserThreadLink(schema);
         addFollower(schema);
 
-        setProperties();
+        setBidirectionalRelationships();
 
 //        setImplementation();
         setSuperClass();
@@ -40,42 +40,27 @@ public class Generator {
     }
 
     //region Add Objects
-    private static void addUser(Schema schema) {
+    private static Property addUser(Schema schema) {
+        Property userId;
         user = schema.addEntity(EntityProperties.BUser);
         user.addIdProperty();
-        user.addStringProperty(EntityProperties.EntityID);
+        userId = user.addStringProperty(EntityProperties.EntityID).getProperty();
         user.addIntProperty(EntityProperties.AuthenticationType);
         user.addStringProperty(EntityProperties.MessageColor);
         user.addDateProperty(EntityProperties.LastOnline);
         user.addDateProperty(EntityProperties.LastUpdated);
         user.addBooleanProperty(EntityProperties.Online);
         user.addStringProperty(EntityProperties.MetaData).columnName(EntityProperties.MetaData.toLowerCase());
+
+        return userId;
     }
 
-    private static void addLinkedAccounts(Schema schema) {
-        linkedAccount = schema.addEntity(EntityProperties.BLinkedAccount);
-        linkedAccount.addIdProperty();
-        linkedAccount.addStringProperty(EntityProperties.Token);
-        linkedAccount.addIntProperty(EntityProperties.Type);
-    }
+    private static Property addThread(Schema schema) {
+        Property threadId;
 
-    private static void addLinkedContact(Schema schema) {
-        linkedContact = schema.addEntity(EntityProperties.BLinkedContact);
-        linkedContact.addIdProperty();
-        linkedContact.addStringProperty(EntityProperties.EntityID);
-    }
-
-    private static void addFollower(Schema schema) {
-        follower = schema.addEntity(EntityProperties.BFollower);
-        follower.addIdProperty();
-        follower.addStringProperty(EntityProperties.EntityID);
-        follower.addIntProperty(EntityProperties.Type);
-    }
-
-    private static void addThread(Schema schema) {
         thread = schema.addEntity(EntityProperties.BThread);
         thread.addIdProperty();
-        thread.addStringProperty(EntityProperties.EntityID);
+        threadId = thread.addStringProperty(EntityProperties.EntityID).getProperty();
         thread.addDateProperty(EntityProperties.CreationDate);
         thread.addBooleanProperty(EntityProperties.HasUnreadMessaged);
         thread.addBooleanProperty(EntityProperties.BDeleted);
@@ -86,17 +71,19 @@ public class Generator {
         thread.addStringProperty(EntityProperties.BThreadImageUrl);
         thread.addStringProperty(EntityProperties.RootKey).columnName(EntityProperties.C_RootKey);
         thread.addStringProperty(EntityProperties.ApiKey).columnName(EntityProperties.C_ApiKey);
+
+        Property threadPropCreator = thread.addLongProperty(EntityProperties.CreatorID).getProperty();
+        ToOne threadToOneCreator = thread.addToOne(user, threadPropCreator);
+        threadToOneCreator.setName(EntityProperties.Creator);
+
+        return threadId;
     }
 
-    private static void addThreadUsers(Schema schema){
-        threadUsers = schema.addEntity(EntityProperties.BLinkData);
-        threadUsers.addIdProperty().primaryKey();
-    }
-
-    private static void addMessages(Schema schema){
+    private static Property addMessages(Schema schema){
+        Property messageId;
         message = schema.addEntity(EntityProperties.BMessage);
         message.addIdProperty();
-        message.addStringProperty(EntityProperties.EntityID);
+        messageId = message.addStringProperty(EntityProperties.EntityID).getProperty();
         message.addDateProperty(EntityProperties.Date);
         message.addBooleanProperty(EntityProperties.isRead);
         message.addStringProperty(EntityProperties.Resource);
@@ -106,79 +93,148 @@ public class Generator {
         message.addIntProperty(EntityProperties.Type);
         message.addIntProperty(EntityProperties.Status);
         message.addIntProperty(EntityProperties.Delivered);
+
+        // The sender ID
+        Property messagePropSender = message.addLongProperty("Sender").getProperty();
+        ToOne messageToOneSender = message.addToOne(user, messagePropSender);
+        messageToOneSender.setName("BUserSender");
+
+        return messageId;
+    }
+
+    private static Property addLinkedAccounts(Schema schema) {
+        Property linkedAccountId;
+        linkedAccount = schema.addEntity(EntityProperties.BLinkedAccount);
+        linkedAccountId = linkedAccount.addIdProperty().getProperty();
+        linkedAccount.addStringProperty(EntityProperties.Token);
+        linkedAccount.addIntProperty(EntityProperties.Type);
+
+        return linkedAccountId;
+    }
+
+    private static Property addContactLink(Schema schema) {
+        Property contactLinkId;
+        Entity contactLink = schema.addEntity(EntityProperties.ContactLink);
+        contactLinkId = contactLink.addIdProperty().getProperty();
+        setManyToMany(contactLink, user, user);
+
+        contactLink.setSuperclass("Entity");
+
+        return contactLinkId;
+    }
+
+    private static Property addUserThreadLink(Schema schema){
+        Property userThreadLinkId;
+        userThreadLink = schema.addEntity(EntityProperties.UserThreadLink);
+        userThreadLinkId = userThreadLink.addIdProperty().primaryKey().getProperty();
+
+
+        // Link data for user and thread.
+        setManyToMany(userThreadLink, user, thread);
+
+        return userThreadLinkId;
+    }
+
+    private static Property addFollower(Schema schema) {
+        Property followerLinkId;
+        followerLink = schema.addEntity(EntityProperties.FollowerLink);
+        followerLinkId = followerLink.addIdProperty().primaryKey().getProperty();
+        followerLink.addIntProperty(EntityProperties.Type); // leftover from follower
+
+        // Link data for user and thread.
+        setManyToMany(followerLink, user, user);
+
+        return followerLinkId;
     }
     //endregion
 
-    private static void setProperties(){
-        Property userPropOwner = follower.addLongProperty(EntityProperties.OwnerId).getProperty();
-        ToOne toOneUserPropOwner = follower.addToOne(user, userPropOwner);
-        toOneUserPropOwner.setName(EntityProperties.Owner);
+    private static void setBidirectionalRelationships(){
 
-        Property userPropUser = follower.addLongProperty(EntityProperties.BUserId).getProperty();
-        ToOne toOneUserPropUser = follower.addToOne(user, userPropUser);
-        toOneUserPropUser.setName(EntityProperties.User);
-
-        // LinkedContact, LinkedAccount and MetaData - START
-        Property userProp = linkedContact.addLongProperty(EntityProperties.Owner).getProperty();
-        ToOne toOneUserProp = linkedContact.addToOne(user, userProp);
-        toOneUserProp.setName("Contact");
-
-        Property userProp2 = linkedAccount.addLongProperty(EntityProperties.User).getProperty();
-        linkedAccount.addToOne(user, userProp2);
-
-        // Add a thread owner to the message
-        Property threadIDProp = message.addLongProperty("OwnerThread").getProperty();
-        ToOne one1 = message.addToOne(thread, threadIDProp);
-        one1.setName("BThreadOwner");
-
-        // The sender ID
-        Property senderIDProp = message.addLongProperty("Sender").getProperty();
-        ToOne one = message.addToOne(user, senderIDProp);
-        one.setName("BUserSender");
-
-        // Link data for user and thread.
-        Property userIdProp = threadUsers.addLongProperty("UserID").getProperty();
-        Property threadIdProp = threadUsers.addLongProperty("ThreadID").getProperty();
-        threadUsers.addToOne(user, userIdProp);
-        threadUsers.addToOne(thread, threadIdProp);
-        //LinkedContact, LinkedAccount and MetaData - END
-
-        // Threads - START
-        Property creatorProp = thread.addLongProperty(EntityProperties.CreatorID).getProperty();
-        ToOne one2 = thread.addToOne(user, creatorProp);
-        one2.setName(EntityProperties.Creator);
-
-        ToMany messagesProp = thread.addToMany(message, threadIDProp);
-        messagesProp.setName(EntityProperties.Messages);
-
-        ToMany linkToUsers = thread.addToMany(threadUsers, threadIdProp);
-        linkToUsers.setName(EntityProperties.BLinkData);
-        // Threads - END
-
-//      // Users - START
-        ToMany contacts = user.addToMany(linkedContact, userProp);
-        contacts.setName(EntityProperties.BLinkedContacts);
-
-        ToMany followers = user.addToMany(follower, userProp);
-        followers.setName(EntityProperties.BFollowers);
-
-        ToMany accounts = user.addToMany(linkedAccount, userProp2);
-        accounts.setName(EntityProperties.BLinkedAccounts);
-
-        ToMany messagesForUser = user.addToMany(message, senderIDProp);
-        messagesForUser.setName(EntityProperties.Messages);
-
-        ToMany threadsCreatedForUser = user.addToMany(thread, creatorProp);
-        threadsCreatedForUser.setName(EntityProperties.ThreadsCreated);
-
-        ToMany linkToThread = user.addToMany(threadUsers, userIdProp);
-        linkToThread.setName(EntityProperties.BLinkData);
-//        // Users - END
-
+            setBidirectionalToMany(thread, message, EntityProperties.Thread, EntityProperties.Messages);
+            setBidirectionalToMany(user, linkedAccount, null, EntityProperties.BLinkedAccounts);
     }
 
-    private static void setKeepSection(){
-        user.setHasKeepSections(true);
+    /**
+     * Adds a toMany relationship to oneEntity, and a toOne relationship to manyEntity.
+     * The property names will be the names of the respective entities, and the Ids will have the
+     * suffix of "DaoId"
+     *
+     * @param oneEntity entity that only will be linking to manyEntities
+     * @param manyEntity entity that will be linking to oneEntity
+     */
+    private static void setBidirectionalToMany(Entity oneEntity, Entity manyEntity ){
+        setBidirectionalToMany(oneEntity, manyEntity, null, null);
+    }
+    /**
+     * Adds a toMany relationship to oneEntity, and a toOne relationship to manyEntity.
+     * The property names will be the names specified, and the Ids will be the names of the
+     * respective entities with the suffix of "DaoId"
+     *
+     *
+     * @param oneEntity entity that only will be linking to manyEntities
+     * @param manyEntity entity that will be linking to oneEntity
+     * @param toOnePropertyName to specify the property name, otherwise null works
+     * @param toManyPropertyName to specify the property name, otherwise null works
+     *
+     */
+    private static void setBidirectionalToMany(Entity oneEntity, Entity manyEntity,
+                                               String toOnePropertyName,
+                                               String toManyPropertyName){
+        Property manyIdProp;
+        if (toOnePropertyName == null) {
+            manyIdProp = manyEntity.addLongProperty(oneEntity.getClassName() + "DaoId").getProperty();
+        }else{
+            manyIdProp = manyEntity.addLongProperty(toOnePropertyName + "DaoId").getProperty();
+        }
+        ToOne toOne = manyEntity.addToOne(oneEntity, manyIdProp);
+        ToMany toMany = oneEntity.addToMany(manyEntity, manyIdProp);
+
+        if(toOnePropertyName == null){
+            toOnePropertyName = oneEntity.getClassName();
+            toOnePropertyName = toOnePropertyName.substring(0, 1).toLowerCase() +
+                    toOnePropertyName.substring(1);
+        }
+
+        if(toManyPropertyName == null){
+            toManyPropertyName = oneEntity.getClassName();
+            toManyPropertyName = toManyPropertyName.substring(0, 1).toLowerCase() +
+                    toManyPropertyName.substring(1) + "s";
+        }
+
+        toOne.setName(toOnePropertyName);
+        toMany.setName(toManyPropertyName);
+    }
+
+    private static void setManyToMany(Entity linkEntity, Entity entityOne, Entity entityTwo){
+
+        Property entityOneProp;
+        Property entityTwoProp;
+        String entityOneName = entityOne.getClassName();
+        String entityTwoName = entityTwo.getClassName();
+
+        // Distinguish entity links if they are to the same entity type
+        if(entityOne.getClassName().equals(entityTwo.getClassName())) {
+            entityTwoName = "linkOwner" + entityTwoName;
+        }
+
+        entityOneProp = linkEntity.addLongProperty(entityOneName + "DaoId").getProperty();
+        entityTwoProp = linkEntity.addLongProperty(entityTwoName + "DaoId").getProperty();
+
+        linkEntity.addToOne(entityOne, entityOneProp).setName(entityOneName);
+        linkEntity.addToOne(entityTwo, entityTwoProp).setName(entityTwoName);
+
+        String linkEntityName = linkEntity.getClassName();
+        linkEntityName = linkEntityName.substring(0, 1).toLowerCase() +
+                linkEntityName.substring(1) + "s";
+
+        ToMany linkFromEntityOne = entityOne.addToMany(linkEntity, entityOneProp);
+        linkFromEntityOne.setName(linkEntityName);
+
+        // If the entities are not the same they each need a property
+        if(!entityOne.getClassName().equals(entityTwo.getClassName())) {
+            ToMany linkFromEntityTwo = entityTwo.addToMany(linkEntity, entityTwoProp);
+            linkFromEntityTwo.setName(linkEntityName);
+        }
     }
 
     private static void setSuperClass(){
@@ -186,8 +242,7 @@ public class Generator {
         message.setSuperclass("BMessageEntity");
         thread.setSuperclass("BThreadEntity");
         linkedAccount.setSuperclass("BLinkedAccountEntity");
-        linkedContact.setSuperclass("Entity");
-        threadUsers.setSuperclass("Entity");
-        follower.setSuperclass("BFollowerEntity");
+        userThreadLink.setSuperclass("Entity");
+        followerLink.setSuperclass("FollowerLinkEntity");
     }
 }

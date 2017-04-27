@@ -110,6 +110,8 @@ public abstract class AbstractNetworkAdapter {
 
     public abstract void setUserOnline();
 
+    public abstract void setUserOffline();
+
     public abstract void logout();
 
     /*** Send a request to the server to get the online status of the user. */
@@ -146,7 +148,7 @@ public abstract class AbstractNetworkAdapter {
 
         final BMessage message = new BMessage();
         message.setText(text);
-        message.setOwnerThread(threadId);
+        message.setThreadDaoId(threadId);
         message.setType(TEXT);
         message.setBUserSender(currentUserModel());
         message.setStatus(BMessageEntity.Status.SENDING);
@@ -158,7 +160,7 @@ public abstract class AbstractNetworkAdapter {
         // was added to the thread.
         // Using this method we are avoiding time differences between the server time and the
         // device local time.
-        Date date = message.getBThreadOwner().getLastMessageAdded();
+        Date date = message.getThread().getLastMessageAdded();
         if (date == null)
             date = new Date();
         
@@ -171,10 +173,12 @@ public abstract class AbstractNetworkAdapter {
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                deferred.notify(message);
+                if(!deferred.isResolved()){
+                    deferred.notify(message);
+                }
             }
         }, 100);
-        
+
         return deferred.promise();
     }
 
@@ -194,7 +198,7 @@ public abstract class AbstractNetworkAdapter {
         final Deferred<BMessage, BError, BMessage> deferred = new DeferredObject<>();
 
         final BMessage message = new BMessage();
-        message.setOwnerThread(threadId);
+        message.setThreadDaoId(threadId);
         message.setType(LOCATION);
         message.setStatus(BMessageEntity.Status.SENDING);
         message.setDelivered(BMessageEntity.Delivered.No);
@@ -207,7 +211,7 @@ public abstract class AbstractNetworkAdapter {
         // was added to the thread.
         // Using this method we are avoiding time differences between the server time and the
         // device local time.
-        Date date = message.getBThreadOwner().getLastMessageAdded();
+        Date date = message.getThread().getLastMessageAdded();
         if (date == null)
             date = new Date();
 
@@ -281,7 +285,7 @@ public abstract class AbstractNetworkAdapter {
         final Deferred<BMessage, BError, BMessage> deferred = new DeferredObject<>();
 
         final BMessage message = new BMessage();
-        message.setOwnerThread(threadId);
+        message.setThreadDaoId(threadId);
         message.setType(IMAGE);
         message.setBUserSender(currentUserModel());
         message.setStatus(BMessageEntity.Status.SENDING);
@@ -293,7 +297,7 @@ public abstract class AbstractNetworkAdapter {
         // was added to the thread.
         // Using this method we are avoiding time differences between the server time and the
         // device local time.
-        Date date = message.getBThreadOwner().getLastMessageAdded();
+        Date date = message.getThread().getLastMessageAdded();
         if (date == null)
             date = new Date();
 
@@ -394,8 +398,6 @@ public abstract class AbstractNetworkAdapter {
 
     
     public abstract Promise<List<BUser>, BError, Integer> usersForIndex(String index, String value);
-
-    public abstract Promise<Void, BError, Void>  updateIndexForUser(BUser user);
 
     public static String processForQuery(String query){
         return StringUtils.isBlank(query) ? "" : query.replace(" ", "").toLowerCase();

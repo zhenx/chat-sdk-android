@@ -60,11 +60,11 @@ public class InMessagesListener extends FirebaseGeneralEvent {
                             deferred.reject(null);
                         return;
                     }
-                    
-                    BMessageWrapper wrapper = BMessageWrapper.initWithSnapshot(dataSnapshot);
 
+                    BThread thread = DaoCore.fetchOrCreateEntityWithEntityID(BThread.class, threadEntityId);
+                    BMessageWrapper wrapper = new BMessageWrapper(thread, dataSnapshot);
                     wrapper.setDelivered(BMessage.Delivered.Yes);
-                    
+
                     // Checking for null sender and that the sender isn't the current user.
                     // This will make sure we wont notify user for his own messages.
                     if (wrapper.model.getBUserSender() != null &&
@@ -78,32 +78,25 @@ public class InMessagesListener extends FirebaseGeneralEvent {
                             wrapper.model.setIsRead(false);
                     }
 
-                    
-                    BThread thread = DaoCore.fetchOrCreateEntityWithEntityID(BThread.class, threadEntityId);
+
                     
                     // Checking to see if this thread was deleted.
                     if (thread.isDeleted())
                     {
-                        if (DEBUG) Timber.v("Thread is Deleted");
-
-                        // Making sure we are now listening to all events.
-                        BThreadWrapper threadWrapper = new  BThreadWrapper(thread);
-                        threadWrapper.on();
-                        threadWrapper.usersOn();
-                        threadWrapper.messagesOn();
-                        threadWrapper.recoverThread();
+                        if (DEBUG) Timber.v("Thread was Deleted");
+                        return;
                     }
 
-                    // Mark the thead as having unread messages if this message
+                    // Mark the thread as having unread messages if this message
                     // doesn't already exist on the thread
-                    if (wrapper.model.getBThreadOwner() == null)
+                    if (wrapper.model.getThread() == null)
                         thread.setHasUnreadMessages(true);
 
                     // Update the thread
                     DaoCore.updateEntity(thread);
 
                     // Update the message.
-                    wrapper.model.setBThreadOwner(thread);
+                    wrapper.model.setThread(thread);
                     DaoCore.updateEntity(wrapper.model);
 
                     if (deferred != null &&  deferred.isPending())
