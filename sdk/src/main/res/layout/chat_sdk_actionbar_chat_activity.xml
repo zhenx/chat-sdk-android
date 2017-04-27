@@ -27,15 +27,31 @@
             android:visibility="invisible"/>
         </FrameLayout>
 
-
+<RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
     <TextView
         android:layout_width="wrap_content"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:gravity="center"
         style="@style/TextViewStyle"
         android:text="name"
-        android:singleLine="true"
+        android:maxLines="1"
         android:ellipsize="end"
         android:textColor="@android:color/white"
         android:id="@+id/chat_sdk_name"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/chat_sdk_name"
+        android:gravity="center"
+        android:text="test"
+        android:maxLines="1"
+        android:textColor="@android:color/white"
+        android:id="@+id/chat_sdk_users_typing"
+        android:textSize="@dimen/abc_text_size_small_material"
+        />
+</RelativeLayout>
+
 </LinearLayout>

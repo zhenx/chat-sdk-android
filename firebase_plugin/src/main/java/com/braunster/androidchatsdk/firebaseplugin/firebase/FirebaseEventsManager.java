@@ -50,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -158,6 +159,11 @@ public class FirebaseEventsManager extends AbstractEventManager implements AppEv
                     if (notNull())
                         manager.get().onUserToFollowRemoved();
                     break;
+
+                //case AppEvents.THREAD_USERS_TYPING_CHANGED:
+                //    if (notNull())
+                //        manager.get().onThreadUsersTypingChanged((Map<String,String>) msg.obj);
+                //    break;
             }
         }
 
@@ -324,6 +330,26 @@ public class FirebaseEventsManager extends AbstractEventManager implements AppEv
         }
 
          return false;
+    }
+
+    @Override
+    public boolean onThreadUsersTypingChanged(final String threadId, final Map<String,String> usersTyping) {
+        if (DEBUG) Timber.i("onThreadUsersTypingChanged");
+
+        for (Event e : events.values()) {
+            if (e == null)
+                continue;
+
+            if (StringUtils.isNotEmpty(e.getEntityId()) && !threadId.equals(e.getEntityId()))
+                continue;
+
+            if (e instanceof BatchedEvent)
+                ((BatchedEvent) e).add(Event.Type.ThreadEvent, threadId);
+
+            e.onThreadUsersTypingChanged(threadId, usersTyping);
+        }
+
+        return false;
     }
 
     @Override

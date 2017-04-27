@@ -8,6 +8,8 @@
 package com.braunster.chatsdk.view;
 
 import android.content.Context;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.View;
@@ -23,7 +25,11 @@ import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.Utils.DialogUtils;
 import com.braunster.chatsdk.Utils.Utils;
+import com.braunster.chatsdk.network.BNetworkManager;
 import com.github.johnpersano.supertoasts.SuperToast;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ChatMessageBoxView extends LinearLayout implements View.OnClickListener , View.OnKeyListener, TextView.OnEditorActionListener{
 
@@ -32,10 +38,19 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
     protected MessageBoxOptionsListener messageBoxOptionsListener;
     protected MessageSendListener messageSendListener;
+    protected MessageBoxTypingListener messageBoxTypingListener;
     protected TextView btnSend;
     protected ImageButton btnOptions;
     protected EditText etMessage;
+    protected Boolean isTyping = false;
     protected PopupWindow optionPopup;
+
+    class UserTypingTimerTask extends TimerTask {
+        @Override
+        public void run(){
+            messageBoxTypingListener.typingStatusChanged(false);
+        }
+    }
 
     /** The alert toast that the app will use to alert the user.*/
     protected SuperToast alertToast;
@@ -77,10 +92,34 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
         btnOptions.setOnClickListener(this);
 
+
         etMessage.setOnEditorActionListener(this);
         etMessage.setOnKeyListener(this);
 
+        etMessage.addTextChangedListener(new TextWatcher() {
+            Timer timer = new Timer();
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                return;
+            }
 
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(s.length() != 0) {
+                    messageBoxTypingListener.typingStatusChanged(true);
+                    timer.cancel();
+                    timer = new Timer();
+                    UserTypingTimerTask task = new UserTypingTimerTask();
+                    timer.schedule(task, 5000L);
+                }else{
+                    messageBoxTypingListener.typingStatusChanged(false);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
     }
 
     /** Show the message option popup, From here the user can send images and location messages.*/
@@ -106,6 +145,7 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
         if (id == R.id.chat_sdk_btn_chat_send_message) {
             if (messageSendListener!=null)
+                messageBoxTypingListener.typingStatusChanged(false);
                 messageSendListener.onSendPressed(getMessageText());
         }
         else if (id == R.id.chat_sdk_btn_options){
@@ -147,6 +187,7 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
     @Override
     public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_SEND)
+            messageBoxTypingListener.typingStatusChanged(false);
             if (messageSendListener!=null)
                 messageSendListener.onSendPressed(getMessageText());
 
@@ -172,6 +213,10 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
         this.messageSendListener = messageSendListener;
     }
 
+    public void setMessageBoxTypingListener(MessageBoxTypingListener messageBoxTypingListener) {
+        this.messageBoxTypingListener = messageBoxTypingListener;
+    }
+
     public String getMessageText(){
         return etMessage.getText().toString();
     }
@@ -189,11 +234,6 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
         return alertToast;
     }
 
-
-
-
-
-
     public interface MessageBoxOptionsListener{
         public void onLocationPressed();
         public void onTakePhotoPressed();
@@ -205,5 +245,9 @@ public class ChatMessageBoxView extends LinearLayout implements View.OnClickList
 
     public interface MessageSendListener {
         public void onSendPressed(String text);
+    }
+
+    public interface MessageBoxTypingListener {
+        public void typingStatusChanged(Boolean isFocused);
     }
 }

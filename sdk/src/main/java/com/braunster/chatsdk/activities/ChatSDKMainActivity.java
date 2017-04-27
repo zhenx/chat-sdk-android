@@ -42,6 +42,8 @@ import com.braunster.chatsdk.object.UIUpdater;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Map;
+
 import timber.log.Timber;
 
 

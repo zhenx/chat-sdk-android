@@ -7,6 +7,7 @@
 
 package com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers;
 
+import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebaseEventsManager;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.FirebasePaths;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.Utils.sorter.MessageSorter;
@@ -52,6 +53,9 @@ import timber.log.Timber;
 public class BThreadWrapper extends EntityWrapper<BThread> {
     
     public static final boolean DEBUG = Debug.BThread;
+
+    DatabaseReference typingRef;
+    ValueEventListener typingListener;
     
     public BThreadWrapper(BThread thread){
         this.model = thread;
@@ -712,6 +716,70 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         
         return deferred.promise();
     }
-    
+
+    /**
+     * When typing is on, a listener is active and updates a local HashMap of typing users
+     * This hashmap has the current user removed from it to prevent notification about them typing.
+     * When changes are detected, the UI is notified through a message handler.
+     */
+    public TypingListenerContainer typingOn(){
+        typingRef = FirebasePaths.threadRef(this.entityId)
+                .child(BFirebaseDefines.Path.BTyping);
+        final String threadId = this.entityId;
+        final String currentUser = BNetworkManager.sharedManager().getNetworkAdapter()
+                .currentUserModel().getEntityID();
+        typingListener = typingRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Map<String,String> usersTyping;
+                FirebaseEventsManager eventSender = FirebaseEventsManager.getInstance();
+                usersTyping = (Map<String,String>) dataSnapshot.getValue();
+                if (usersTyping != null) {
+                    usersTyping.remove(currentUser); //remove current user from typing indicator
+                }
+                eventSender.onThreadUsersTypingChanged(threadId, usersTyping);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError firebaseError) {
+
+            }
+        });
+        return new TypingListenerContainer(typingRef,typingListener);
+    }
+
+    public class TypingListenerContainer {
+        DatabaseReference ref;
+        ValueEventListener listener;
+
+        TypingListenerContainer(DatabaseReference ref, ValueEventListener listener){
+            this.ref = ref;
+            this.listener = listener;
+        }
+
+        public void stopListening(){
+            this.ref.removeEventListener(this.listener);
+        }
+    }
+
+    /**
+     * Adds the active user ID as a child to the list of active typers on Firebase.
+     * This list is an online first approach since the typing indicator is only important
+     * when there is an active connection.
+     */
+    public void startTyping(){
+        DatabaseReference ref = FirebasePaths.threadRef(this.entityId).child(BFirebaseDefines.Path.BTyping);
+        BUser currentUser = getNetworkAdapter().currentUserModel();
+        ref.child(currentUser.getEntityID()).setValue(currentUser.getMetaName());
+    }
+
+    /**
+     * Removes the active user ID as a child from the list of active typers on Firebase
+     */
+    public void stopTyping(){
+        DatabaseReference ref = FirebasePaths.threadRef(this.entityId).child(BFirebaseDefines.Path.BTyping);
+        BUser currentUser = getNetworkAdapter().currentUserModel();
+        ref.child(currentUser.getEntityID()).removeValue();
+    }
     
 }

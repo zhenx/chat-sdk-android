@@ -804,4 +804,8 @@ public abstract class AbstractNetworkAdapter {
     private static Promise<String[], BError, SaveImageProgress> rejectMultiple(){
         return new DeferredObject<String[], BError, SaveImageProgress>().reject(new BError(BError.Code.NULL, "Image Is Null"));
     }
+
+    public abstract void typingStatusChanged(BThread thread, Boolean isFocused);
+    public abstract void typingListenerOn(BThread thread);
+    public abstract void typingListenerOff();
 }

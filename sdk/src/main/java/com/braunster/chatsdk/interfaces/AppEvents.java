@@ -11,6 +11,9 @@ import com.braunster.chatsdk.dao.FollowerLink;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BUser;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by braunster on 30/06/14.
  */
@@ -25,6 +28,7 @@ public interface AppEvents {
     public static final int USER_TO_FOLLOW_ADDED = 5;
     public static final int FOLLOWER_REMOVED = 6;
     public static final int USER_TO_FOLLOW_REMOVED = 7;
+    public static final int THREAD_USERS_TYPING_CHANGED = 8;
 
 
 
@@ -34,6 +38,7 @@ public interface AppEvents {
 
     public boolean onThreadIsAdded(String threadId);
     public boolean onThreadDetailsChanged(String threadId);
+    public boolean onThreadUsersTypingChanged(String threadId, Map<String,String> usersTyping);
     public boolean onUserAddedToThread(String threadId, String userId);
 
 

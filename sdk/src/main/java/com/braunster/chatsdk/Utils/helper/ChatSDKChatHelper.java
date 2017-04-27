@@ -55,7 +55,8 @@ import java.util.List;
 import de.greenrobot.dao.query.QueryBuilder;
 import timber.log.Timber;
 
-public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsListener, ChatMessageBoxView.MessageSendListener{
+
+public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsListener, ChatMessageBoxView.MessageSendListener, ChatMessageBoxView.MessageBoxTypingListener{
 
     public static final int ERROR = 1991, NOT_HANDLED = 1992, HANDLED = 1993;
 
@@ -146,6 +147,7 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
             messageBoxView.setMessageSendListener(this);
 
         messageBoxView.setMessageBoxOptionsListener(this);
+        messageBoxView.setMessageBoxTypingListener(this);
     }
 
     /** Load messages from the database and saving the current position of the list.*/
@@ -848,5 +850,10 @@ public class ChatSDKChatHelper implements ChatMessageBoxView.MessageBoxOptionsLi
     public boolean hasActivity(){
         return  activity != null && activity.get() != null;
         
+    }
+
+    public void typingStatusChanged(Boolean isFocused) {
+        AbstractNetworkAdapter networkAdapter = BNetworkManager.sharedManager().getNetworkAdapter();
+        networkAdapter.typingStatusChanged(thread,isFocused);
     }
 }

@@ -66,6 +66,8 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
     private static final String TAG = BChatcatNetworkAdapter.class.getSimpleName();
     private static boolean DEBUG = Debug.BFirebaseNetworkAdapter;
 
+    BThreadWrapper.TypingListenerContainer typingListener;
+
     public BChatcatNetworkAdapter(Context context){
         super(context);
     }
@@ -1097,5 +1099,19 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
     private void updateLastOnline(){
         // FIXME to implement?
 
+    }
+
+    public void typingStatusChanged(BThread thread, Boolean isFocused){
+        if(isFocused) new BThreadWrapper(thread).startTyping();
+        else new BThreadWrapper(thread).stopTyping();
+    }
+
+    public void typingListenerOn(BThread thread){
+        typingListener =
+                new BThreadWrapper(thread).typingOn();
+    }
+
+    public void typingListenerOff(){
+        typingListener.stopListening();
     }
 }

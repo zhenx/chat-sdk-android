@@ -12,6 +12,8 @@ import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.FollowerLink;
 import com.braunster.chatsdk.interfaces.AppEvents;
 
+import java.util.Map;
+
 public class Event implements AppEvents{
 
     public enum Type{
@@ -80,6 +82,9 @@ public class Event implements AppEvents{
     public boolean onThreadDetailsChanged(String threadId) {
         return false;
     }
+
+    @Override
+    public boolean onThreadUsersTypingChanged(String threadId, Map<String,String> usersTyping){ return false;}
 
     @Override
     public boolean onUserAddedToThread(String threadId, String userId) {

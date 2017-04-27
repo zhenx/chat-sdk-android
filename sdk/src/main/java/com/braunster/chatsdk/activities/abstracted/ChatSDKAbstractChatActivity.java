@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Vibrator;
+import android.support.v4.view.accessibility.AccessibilityNodeInfoCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -50,6 +51,7 @@ import com.braunster.chatsdk.dao.entities.BThreadEntity;
 import com.braunster.chatsdk.fragments.ChatSDKContactsFragment;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
+import com.braunster.chatsdk.network.events.AppEventListener;
 import com.braunster.chatsdk.network.events.BatchedEvent;
 import com.braunster.chatsdk.network.events.Event;
 import com.braunster.chatsdk.network.events.MessageEventListener;
@@ -61,7 +63,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import timber.log.Timber;
@@ -84,6 +88,7 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
      * It will be removed when activity is paused. or when opened again for new thread.*/
     public static final String MessageListenerTAG = TAG + "MessageTAG";
     public static final String ThreadListenerTAG = TAG + "threadTAG";
+    public static final String TypingListenerTag = TAG + "typingTAG";
 
     /** The key to get the thread long id.*/
     public static final String THREAD_ID = ChatSDKBaseThreadActivity.THREAD_ID;
@@ -108,7 +113,8 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     protected  ListView listMessages;
     protected ChatSDKMessagesListAdapter messagesListAdapter;
     protected  BThread thread;
-
+    protected TextView txtUsersTyping;
+    protected String usersTypingStr = "";
     protected  ProgressBar progressBar;
     protected  int listPos = -1;
 
@@ -185,6 +191,8 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
 
             TextView txtName = (TextView) actionBarView.findViewById(R.id.chat_sdk_name);
             changed = setThreadName(txtName);
+            txtUsersTyping = (TextView) actionBarView.findViewById(R.id.chat_sdk_users_typing);
+            txtUsersTyping.setText(usersTypingStr);
 
 
             final CircleImageView circleImageView = (CircleImageView) actionBarView.findViewById(R.id.chat_sdk_circle_image);
@@ -378,10 +386,12 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     protected void onStart() {
         super.onStart();
 
+        getNetworkAdapter().typingListenerOn(thread);
         if (thread != null && thread.getType() == BThread.Type.Public)
         {
             getNetworkAdapter().addUsersToThread(thread, getNetworkAdapter().currentUserModel());
         }
+
     }
 
     @Override
@@ -460,6 +470,52 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
             }
         });
 
+        // TODO: modularize this implementation
+        final AppEventListener threadUsersTypingListener = new AppEventListener(TypingListenerTag + thread.getId()) {
+            @Override
+            public boolean onThreadUsersTypingChanged(String threadId, Map<String,String> usersTyping){
+                String toDisplay = ""; // default empty
+                int numUsersInChat = thread.getUsers().size();
+
+                // only add text when users are typing
+                if (usersTyping != null && usersTyping.size() > 0) {
+                    // 1 on 1 private chat, other user is typing
+                    if (numUsersInChat <= 2 && thread.getType() == BThread.Type.Private){
+                            toDisplay = "typing";
+                    }
+                    // public or private chat with one person typing
+                    else if(usersTyping.size() == 1){
+                        toDisplay = usersTyping.values().toArray()[0].toString() + "is typing";
+                    }
+                    // public or private chat multiple users typing
+                    else if (usersTyping.size() > 1){
+                        Collection<String> usersTypingCollection = usersTyping.values();
+                        int i = 0;
+                        for (String userTyping : usersTypingCollection) {
+                            if (i == 0){
+                                toDisplay = userTyping;
+                            }else if (toDisplay.length() + userTyping.length() + 5 >= 30) {
+                                toDisplay = toDisplay + ", . . . typing";
+                                break;
+                            }
+                            else if (i == usersTypingCollection.size()) {
+                                toDisplay = toDisplay + ", and " + userTyping + " typing";
+                                break;
+                            } else {
+                                toDisplay = toDisplay + ", " + userTyping;
+                            }
+                            i = i + 1;
+                        }
+                    }
+                }
+                // update UI
+                txtUsersTyping.setText(toDisplay);
+                usersTypingStr = toDisplay;
+                return false;
+            }
+
+        };
+
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -487,6 +543,10 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
                 // Removing the last listener just to be sure we wont receive duplicates notifications.
                 getNetworkAdapter().getEventManager().removeEventByTag(ThreadListenerTAG + thread.getId());
                 getNetworkAdapter().getEventManager().addEvent(threadBatchedEvent);
+
+                getNetworkAdapter().getEventManager().removeEventByTag(TypingListenerTag + thread.getId());
+                getNetworkAdapter().getEventManager().addEvent(threadUsersTypingListener);
+
             }
         }).start();
 
@@ -505,6 +565,9 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     @Override
     protected void onPause() {
         super.onPause();
+
+        // User cannot be typing when activity is paused
+        chatSDKChatHelper.typingStatusChanged(false);
         getNetworkAdapter().getEventManager().removeEventByTag(MessageListenerTAG + thread.getId());
         getNetworkAdapter().getEventManager().removeEventByTag(ThreadListenerTAG + thread.getId());
     }
@@ -517,6 +580,7 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
     protected void onStop() {
         super.onStop();
 
+        getNetworkAdapter().typingListenerOff();
         if (chatSDKChatHelper.getReadCount() > 0)
             sendBroadcast(new Intent(ACTION_CHAT_CLOSED));
 

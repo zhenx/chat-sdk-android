@@ -31,6 +31,7 @@ import com.braunster.chatsdk.dao.BUser;
 import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.fragments.ChatSDKContactsFragment;
 import com.braunster.chatsdk.fragments.abstracted.ChatSDKAbstractContactsFragment;
+import com.braunster.chatsdk.network.events.AppEventListener;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.object.BError;
 import com.braunster.chatsdk.object.Cropper;
@@ -41,6 +42,7 @@ import org.jdeferred.DoneCallback;
 import org.jdeferred.FailCallback;
 
 import java.io.File;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 import timber.log.Timber;
