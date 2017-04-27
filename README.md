@@ -33,6 +33,7 @@ The Chat SDK has a number of additional modules that can easily be installed inc
 - [Location based chat](http://chatsdk.co/downloads/location-based-chat/)
 - [Audio messages](http://chatsdk.co/downloads/audio-messages/)
 - [Video messages](http://chatsdk.co/downloads/video-messages/)
+- [Contact book integration](http://chatsdk.co/downloads/contact-book-integration/)
 - [Push notifications](http://chatsdk.co/downloads/backendless-push-notifications/)
 
 ## Get involved!
@@ -166,13 +167,16 @@ Firebase allows users to login with many different account (Email, Anonymous, Fa
 
 All the code for Push Notifications is already included in the Chat SDK. Getting them working only requires a small amount of configuration. For help regarding this, you can take a look at the [Backendless guide](https://backendless.com/documentation/messaging/android/messaging_push_notification_setup_androi.htm).
 
+>**NOTE:**
+>The app currently uses Backendless 3.0. Make sure that Backendless 3 is selected from the Backendless dashboard.  
+
 >**NOTE:**  
 >Some of the steps in this tutorial include adding code to the app, these steps should be unnecessary as they have already been added to the project.
 
 >**NOTE:**  
 >If you want push notifications to work in Development mode make sure to configure them in your provisioning profile for both development and production.
 
-###Google Maps
+### Google Maps
 
 Copy the `permission.MAPS_RECEIVE` declared in the **app** manifest. Notice that you need to replace `com.braunster` with your package name.
 
@@ -305,7 +309,7 @@ dependencies {
 
 Sync Gradle again and we are ready to launch the Chat SDK activity. 
 
-##Launching the Chat SDK login activity
+## Launching the Chat SDK login activity
 
 Open up your app's main activity. It should be in **App** -> **java** -> **Your app namespace** -> **Main Activity**
 
