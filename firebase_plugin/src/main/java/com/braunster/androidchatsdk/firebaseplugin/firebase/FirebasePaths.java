@@ -90,6 +90,17 @@ public class FirebasePaths{
         return firebaseRef().child(BFirebaseDefines.Path.BPublicThreadPath);
     }
 
+    /* Locations */
+    /** @return The location main ref.*/
+    public static DatabaseReference locationRef(){
+        return firebaseRef().child(BFirebaseDefines.Path.BLocationsPath);
+    }
+
+    /** @return The location ref for given id.*/
+    public static DatabaseReference locationRef(String firebaseId){
+        return locationRef().child(firebaseId);
+    }
+
     /* Index */
     public static DatabaseReference indexRef(){
         return firebaseRef().child(BFirebaseDefines.Path.BIndexPath);

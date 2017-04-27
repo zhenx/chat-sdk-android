@@ -18,7 +18,7 @@ public class BDefines {
 
     /** This is the root path of all the app data,
      *  This is helpful if you want to test new behavior and don't want to infect all the old thread. */
-    public static final String BRootPath = "firebase_v4_local_test/";
+    public static final String BRootPath = "geochat/";
 
     /**
      * The version name of the app, Here we are using the name from the BuildConfig.
@@ -255,6 +255,11 @@ public class BDefines {
          * if true the option to open the thread details would be visible in the chat activity.
          **/
         public static boolean ThreadDetailsEnabled = true;
+
+        /**
+         * if true the option to open the thread details would be visible in the chat activity.
+         **/
+        public static boolean ShrinkTabsToFitHorizontally = false;
 
         /**
          * If true images opened in the chat activity will be saved to the user image gallery

@@ -109,6 +109,8 @@ public class ChatSDKProfileFragment extends ChatSDKAbstractProfileFragment {
         // The number would only be index if phone index is enabled in BDefines.
         TextWatcher phoneTextWatcher = new SaveIndexDetailsTextWatcher(BDefines.Keys.BPhone);
         etPhone.addTextChangedListener(phoneTextWatcher);
+
+        loadData();
     }
 
     @Override

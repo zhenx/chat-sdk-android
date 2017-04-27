@@ -55,6 +55,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
     public static final int TYPE_USER = 1991;
     public static final int TYPE_HEADER = 1992;
+    public static final int TYPE_BAND = 1993;
 
     protected static final String H_ONLINE = "ONLINE", H_OFFLINE = "OFFLINE", H_NO_ONLINE = "NO ONLINE CONTACTS", H_NO_OFFLINE = "NO OFFLINE CONTACTS", H_NO_CONTACTS = "NO CONTACTS";
 
@@ -75,6 +76,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
     public class ViewHolder {
         public CircleImageView profilePicture;
         public TextView textView;
+        public TextView distanceTextView;
         public CheckBox checkBox;
 
         public AbstractProfilePicLoader profilePicLoader;
@@ -155,6 +157,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
         if (getItemViewType(position) == TYPE_USER)
         {
+            holder.distanceTextView = (TextView) row.findViewById(R.id.chat_sdk_distance);
             holder.profilePicture = (CircleImageView) row.findViewById(R.id.img_profile_picture);
             if (isMultiSelect)
             {
@@ -193,6 +196,32 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         userItems.add(itemMaker.fromBUser(user));
 
         userIDs.add(user.getEntityID());
+
+        notifyDataSetChanged();
+    }
+
+    public void addRow(BUser user, Double distance){
+        userItems.add(itemMaker.fromBUserAndDistance(user, distance));
+
+        userIDs.add(user.getEntityID());
+
+        notifyDataSetChanged();
+    }
+
+    public void addBand(Double lowerBorder, Double upperBorder) {
+        String text;
+
+        if(lowerBorder == 0.0) {
+            text = mActivity.getString(R.string.less_than) + " " +
+                    ((Double) (upperBorder / 1000.0)).intValue() + " " + mActivity.getString(R.string.kilometers);
+        }
+        else
+        {
+            text = ((Double) (lowerBorder / 1000.0)).intValue() + " " + mActivity.getString(R.string.to) + " " +
+                    ((Double) (upperBorder / 1000.0)).intValue() + " " + mActivity.getString(R.string.kilometers);
+        }
+
+        userItems.add(itemMaker.getBand(text));
 
         notifyDataSetChanged();
     }
@@ -267,6 +296,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
         public Bitmap picture;
         public String pictureURL;
         public String pictureThumbnailURL;
+        public String distance;
         public boolean online;
 
 
@@ -274,7 +304,7 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
         public int type, resourceID;
 
-        public AbstractUserListItem(int resourceID, String entityID, String text, String pictureThumbnailURL, String pictureURL, int type, boolean online) {
+        public AbstractUserListItem(int resourceID, String entityID, String text, String pictureThumbnailURL, String pictureURL, int type, boolean online, Double distance) {
             this.text = text;
             this.online = online;
             this.pictureURL = pictureURL;
@@ -283,6 +313,13 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
             this.type = type;
             this.entityID = entityID;
             this.fromURL = true;
+
+            // if no distance is given leave it empty
+            if(distance == null || distance == -1.0) {
+                this.distance = "";
+            } else {
+                this.distance = distance.intValue() + " m away";
+            }
         }
 
         public AbstractUserListItem(int resourceID, String text, int type) {
@@ -309,6 +346,10 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
 
         public String getEntityID() {
             return entityID;
+        }
+
+        public String getDistance() {
+            return distance;
         }
 
         public boolean isFromURL() {
@@ -515,7 +556,9 @@ public abstract class ChatSDKAbstractUsersListAdapter<E extends ChatSDKAbstractU
      * * * */
     protected interface UserListItemMaker<E extends ChatSDKAbstractUsersListAdapter.AbstractUserListItem> {
         public E fromBUser(BUser user);
+        public E fromBUserAndDistance(BUser user, Double distance);
         public E getHeader(String type);
+        public E getBand(String type);
         public List<E> getListWithHeaders(List<E> list);
     }
 

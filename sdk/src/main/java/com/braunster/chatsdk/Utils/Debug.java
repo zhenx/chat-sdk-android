@@ -14,6 +14,7 @@ public class Debug {
     public static final boolean AbstractNetworkAdapter = false;
     public static final boolean BFacebookManager = false;
     public static final boolean BNetworkManager = false;
+    public static final boolean BGeoFireManager = false;
     public static final boolean TwitterManager = true;
     public static final boolean EventManager = false;
     public static final boolean BPath = false;
@@ -27,6 +28,7 @@ public class Debug {
     public static final boolean ConversationsFragment = FRAGMENTS || false;
     public static final boolean ProfileFragment = FRAGMENTS || false;
     public static final boolean ThreadsFragment = FRAGMENTS || false;
+    public static final boolean NearbyUsersFragment = FRAGMENTS || false;
     public static final boolean ExpandableContactsFragment = FRAGMENTS || false;
 
     /*DaoCore*/
@@ -56,6 +58,7 @@ public class Debug {
     public static final boolean ImageUtils = false;
     public static final boolean UiUtils = false;
     public static final boolean DialogUtils = false;
+    public static final boolean PushUtils = false;
 
     /*Views*/
     public static final boolean ChatBubbleImageView = false;
@@ -74,5 +77,5 @@ public class Debug {
 
 
 
-    public static final boolean NotificationUtils = true;
+    public static final boolean NotificationUtils = false;
 }

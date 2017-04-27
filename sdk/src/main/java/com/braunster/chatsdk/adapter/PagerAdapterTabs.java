@@ -15,6 +15,7 @@ import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.fragments.ChatSDKBaseFragment;
 import com.braunster.chatsdk.fragments.ChatSDKContactsFragment;
 import com.braunster.chatsdk.fragments.ChatSDKConversationsFragment;
+import com.braunster.chatsdk.fragments.ChatSDKNearbyUsersFragment;
 import com.braunster.chatsdk.fragments.ChatSDKProfileFragment;
 import com.braunster.chatsdk.fragments.ChatSDKThreadsFragment;
 
@@ -28,10 +29,11 @@ public class PagerAdapterTabs extends AbstractChatSDKTabsAdapter implements Page
 
         fragments = new ChatSDKBaseFragment[] {ChatSDKConversationsFragment.newInstance(),
                 ChatSDKThreadsFragment.newInstance(),
+                ChatSDKNearbyUsersFragment.newInstance(),
                 ChatSDKContactsFragment.newInstance("ConvFragmentPage"),
                 ChatSDKProfileFragment.newInstance()};
 
-        icnns = new int[] {R.drawable.ic_action_private, R.drawable.ic_action_public, R.drawable.ic_action_contacts, R.drawable.ic_action_user };
+        icnns = new int[] {R.drawable.ic_action_private, R.drawable.ic_action_public, R.drawable.ic_glass, R.drawable.ic_action_contacts, R.drawable.ic_action_user };
     }
 
 }

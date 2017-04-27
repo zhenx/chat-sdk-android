@@ -357,6 +357,11 @@ public class ChatSDKMainActivity extends ChatSDKBaseActivity {
 
         if (pro != null)
             pro.clearData();
+
+        ChatSDKBaseFragment geo = getFragment(AbstractChatSDKTabsAdapter.NearbyUsers);
+
+        if (geo != null)
+            geo.clearData();
     }
 
     /* Exit Stuff*/

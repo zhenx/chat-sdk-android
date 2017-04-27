@@ -16,6 +16,7 @@ import com.braunster.chatsdk.R;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.Utils.volley.VolleyUtils;
 import com.braunster.chatsdk.dao.core.DaoCore;
+import com.braunster.chatsdk.interfaces.GeoInterface;
 import com.bugsense.trace.BugSenseHandler;
 
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +37,8 @@ public class BNetworkManager {
     private static BNetworkManager instance;
 
     private AbstractNetworkAdapter networkAdapter;
+
+    private GeoInterface geoDelegate;
 
     private static Context context;
 
@@ -78,5 +81,13 @@ public class BNetworkManager {
     /** Safe to call after login.*/
     public static SharedPreferences getCurrentUserPrefs(){
         return context.getSharedPreferences(sharedManager().getNetworkAdapter().currentUserModel().getEntityID(), Context.MODE_PRIVATE);
+    }
+
+    public void setGeoDelegate(GeoInterface delegate) {
+        geoDelegate = delegate;
+    }
+
+    public GeoInterface getGeoDelegate() {
+        return geoDelegate;
     }
 }

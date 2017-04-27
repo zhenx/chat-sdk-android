@@ -37,6 +37,12 @@
         <item name="android:padding">2dp</item>
     </style>
 
+    <style name="TextViewStyleDistance">
+        <item name="android:textSize">13dp</item>
+        <item name="android:padding">2dp</item>
+        <item name="android:layout_marginTop">12dp</item>
+    </style>
+
     <style name="MessageDateStyle">
         <item name="android:textSize">13dp</item>
         <item name="android:padding">2dp</item>

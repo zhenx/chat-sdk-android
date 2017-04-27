@@ -13,6 +13,7 @@ import android.support.annotation.NonNull;
 import com.braunster.androidchatsdk.firebaseplugin.R;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.BBackendlessHandler;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.backendless.ChatSDKReceiver;
+import com.braunster.androidchatsdk.firebaseplugin.firebase.geofire.BGeoFireManager;
 import com.braunster.chatsdk.Utils.Debug;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
@@ -81,6 +82,10 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         BBackendlessHandler backendlessPushHandler = new BBackendlessHandler();
         backendlessPushHandler.setContext(context);
         setPushHandler(backendlessPushHandler);
+
+        // Adding the geofire manager
+        BGeoFireManager geoFireManager = BGeoFireManager.sharedManager();
+        setGeoFireManager(geoFireManager);
 
         // Parse init
         /*Parse.initialize(context, context.getString(R.string.parse_app_id), context.getString(R.string.parse_client_key));
@@ -500,5 +505,9 @@ public abstract class BFirebaseNetworkAdapter extends AbstractNetworkAdapter {
         }
 
         return new BError(code, errorMessage, error);
+    }
+
+    public BGeoFireManager geoFireManager() {
+        return (BGeoFireManager) this.geoFireManager;
     }
 }

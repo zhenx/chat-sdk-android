@@ -83,7 +83,9 @@ public class ChatSDKUsersListAdapter extends ChatSDKAbstractUsersListAdapter<Cha
 
         if (getItemViewType(position) == TYPE_USER)
         {
-           if (userItem.fromURL)
+            holder.distanceTextView.setText(userItem.getDistance());
+
+            if (userItem.fromURL)
             {
                 int size = holder.profilePicture.getHeight();
 
@@ -138,12 +140,30 @@ public class ChatSDKUsersListAdapter extends ChatSDKAbstractUsersListAdapter<Cha
                         user.getThumbnailPictureURL(),
                         user.getMetaPictureUrl(),
                         TYPE_USER,
-                        user.getOnline() == null ? false : user.getOnline());
+                        user.getOnline() == null ? false : user.getOnline(),
+                        -1.0);
+            }
+
+            @Override
+            public AbstractUserListItem fromBUserAndDistance(BUser user, Double distance) {
+                return  new AbstractUserListItem(R.layout.chat_sdk_row_contact,
+                        user.getEntityID(),
+                        user.getMetaName(),
+                        user.getThumbnailPictureURL(),
+                        user.getMetaPictureUrl(),
+                        TYPE_USER,
+                        user.getOnline() == null ? false : user.getOnline(),
+                        distance);
             }
 
             @Override
             public AbstractUserListItem getHeader(String type) {
                 return new AbstractUserListItem(com.braunster.chatsdk.R.layout.chat_sdk_list_header, type, TYPE_HEADER);
+            }
+
+            @Override
+            public AbstractUserListItem getBand(String type) {
+                return new AbstractUserListItem(com.braunster.chatsdk.R.layout.chat_sdk_row_band, type, TYPE_BAND);
             }
 
             @Override
