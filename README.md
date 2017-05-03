@@ -36,6 +36,12 @@ The Chat SDK has a number of additional modules that can easily be installed inc
 - [Contact book integration](http://chatsdk.co/downloads/contact-book-integration/)
 - [Push notifications](http://chatsdk.co/downloads/backendless-push-notifications/)
 
+## Help spread the word
+Chat SDK is free and open source. If you like the project help us spread the word by:
+
++ Giving us a Github star ⭐
++ Upvoting our page on [Product Hunt](https://www.producthunt.com/posts/chat-sdk)
+
 ## Get involved!
 We're very excited about the project and we're looking for other people to get involved. Over time we would like to make the best messaging framework for mobile. Helping us could involve any of the following:
 
@@ -48,6 +54,13 @@ We're very excited about the project and we're looking for other people to get i
 + Helping to write adapters for other services such as Layer, Pusher, Pubnub etc... 
 
 If you're interested please email me at [**team@chatsdk.co**](mailto:team@chatsdk.co).
+
+## Apps that use Chat SDK
+
++ [Parlor](http://parlor.me/)
++ [Voice - Instant Messaging App](https://play.google.com/store/apps/details?id=com.skintmedia.voice&hl=en_GB)
+
+If you have an app that uses the Chat SDK let us know and we'll add a link. 
 
 ## The license
 This project uses the MIT license which is a commercially friendly open source license. The license has the following features:

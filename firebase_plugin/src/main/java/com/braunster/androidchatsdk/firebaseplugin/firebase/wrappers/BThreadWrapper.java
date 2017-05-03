@@ -61,6 +61,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         this(DaoCore.fetchOrCreateEntityWithEntityID(BThread.class, entityId));
     }
 
+
     @Override
     public BThread getModel(){
         return DaoCore.fetchEntityWithEntityID(BThread.class, entityId);
