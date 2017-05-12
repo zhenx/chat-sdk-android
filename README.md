@@ -5,8 +5,8 @@
 
 Chat SDK is a fully featured open source instant messaging framework for Android. Chat SDK is fully featured, scalable and flexible and follows the following key principles:
 
-- **Free.** The Chat SDK is free for unlimited commercial use
-- **Open Source.** The Chat SDK is open source under the [MIT license](https://tldrlegal.com/license/mit-license)
+- **Free.** The Chat SDK is completely free
+- **Open Source.** The Chat SDK is open source under the [MIT license](https://tldrlegal.com/license/mit-license) for compiled binaries
 - **Full data control.** You have full and exclusive access to the user's chat data
 - **Quick integration.** Chat SDK is fully featured out of the box
 - **Firebase** Powered by Google Firebase
@@ -63,13 +63,22 @@ If you're interested please email me at [**team@chatsdk.co**](mailto:team@chatsd
 If you have an app that uses the Chat SDK let us know and we'll add a link. 
 
 ## The license
-This project uses the MIT license which is a commercially friendly open source license. The license has the following features:
 
-+ Commercial use is allowed
-+ You can modify, distribute and sublicense the source code
-+ The work is provided "as is". You may not hold the author liable.
-+ You must include the copyright notice
-+ You must include the license 
++ Binary distributeion - MIT license
+
+If you are distributing a product in binary form - like selling an app on the app store, the code is covered by the MIT license.
+
++ Source code distribution - GNUv3 license
+
+If you are distributing the source code to the Chat SDK, the code is covered under the GNUv3 license. 
+
+What this means:
+
++ You can make an app using the Chat SDK code and sell it on the app store
++ You can compile the Chat SDK into a library and sell that library
++ You can add the Chat SDK to your client's app 
+
++ If you want to distribute the source code a product that includes the Chat SDK, you would have to distribute it under the GNUv3 license. 
 
 ## Wiki
 
