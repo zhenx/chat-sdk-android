@@ -24,7 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 For applications that are distributed as source code:
 
 ========================================================
-== GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 ==
+== GNU GENERALx PUBLIC LICENSE Version 3, 29 June 2007 ==
 ========================================================
 
 Copyright (C) 2007 Free Software Foundation, Inc. <http://fsf.org/>
