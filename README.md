@@ -85,9 +85,7 @@ We offer a choice of two license for this app. You can either use the [Chat SDK]
 
 **What does this mean?**
 
-Essentially, it means that you are free to use the Chat SDK code in your own apps or your clients apps as long as those apps are distributed in a binary form. That means on the App Store or Play Store or as compiled libraries. 
-
-The only thing you can't do is sell source code that includes the Chat SDK code. If you want to do that, you should email us for a custom license. 
+Please check out the [Licensing FAQ](https://github.com/chat-sdk/chat-sdk-android/blob/master/LICENSE.md) for more information.
 
 ## Wiki
 
