@@ -365,7 +365,7 @@ public abstract class AbstractNetworkAdapter {
         return deferred;
     }
 
-    public abstract Promise<List<BMessage>, Void, Void> loadMoreMessagesForThread(BThread thread);
+    public abstract Promise<List<BMessage>, Void, Void> loadMoreMessagesForThread(final BMessage fromMessage, BThread thread);
 
     public int getUnreadMessagesAmount(boolean onePerThread){
         List<BThread> threads = currentUserModel().getThreads(BThread.Type.Private);

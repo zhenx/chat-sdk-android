@@ -537,8 +537,8 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
     }
     
     @Override
-    public Promise<List<BMessage>, Void, Void> loadMoreMessagesForThread(BThread thread) {
-        return new BThreadWrapper(thread).loadMoreMessages(BFirebaseDefines.NumberOfMessagesPerBatch);
+    public Promise<List<BMessage>, Void, Void> loadMoreMessagesForThread(final BMessage fromMessage, BThread thread) {
+        return new BThreadWrapper(thread).loadMoreMessages(fromMessage, BFirebaseDefines.NumberOfMessagesPerBatch);
     }
 
     @Override
