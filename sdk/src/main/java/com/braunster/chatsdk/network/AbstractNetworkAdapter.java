@@ -391,8 +391,6 @@ public abstract class AbstractNetworkAdapter {
     }
 
 
-
-    
     public abstract Promise<List<BUser>, BError, Integer> usersForIndex(String index, String value);
 
     public static String processForQuery(String query){

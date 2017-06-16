@@ -5,8 +5,11 @@ import android.support.multidex.MultiDexApplication;
 
 import com.braunster.androidchatsdk.firebaseplugin.firebase.BChatcatNetworkAdapter;
 import com.braunster.chatsdk.Utils.helper.ChatSDKUiHelper;
+import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BNetworkManager;
+
+import java.util.Map;
 
 import timber.log.Timber;
 
@@ -42,5 +45,8 @@ public class AppObj extends MultiDexApplication {
         // Adapter init.
         BChatcatNetworkAdapter adapter = new BChatcatNetworkAdapter(getApplicationContext());
         BNetworkManager.sharedManager().setNetworkAdapter(adapter);
+
+
+
     }
 }
