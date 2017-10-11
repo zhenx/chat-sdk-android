@@ -60,6 +60,7 @@ Document](https://github.com/chat-sdk/chat-sdk-android/blob/master/CONTRIBUTING.
 
 + [Parlor](http://parlor.me/)
 + [Voice - Instant Messaging App](https://play.google.com/store/apps/details?id=com.skintmedia.voice&hl=en_GB)
++ [Nex Tv Latino](https://play.google.com/store/apps/details?id=com.helpdevs.nexttv)
 
 If you have an app that uses the Chat SDK let us know and we'll add a link. 
 
