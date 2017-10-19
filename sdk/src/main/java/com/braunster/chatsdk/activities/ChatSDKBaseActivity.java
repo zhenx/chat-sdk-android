@@ -515,6 +515,7 @@ public class ChatSDKBaseActivity extends Activity implements ChatSDKBaseActivity
         return BNetworkManager.sharedManager().getNetworkAdapter();
     }
 
+
     public void setChatSDKUiHelper(ChatSDKUiHelper chatSDKUiHelper) {
         this.chatSDKUiHelper = chatSDKUiHelper;
     }

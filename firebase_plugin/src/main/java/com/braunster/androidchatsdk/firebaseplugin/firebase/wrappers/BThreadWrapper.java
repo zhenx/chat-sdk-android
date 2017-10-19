@@ -66,6 +66,7 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
         this(DaoCore.fetchOrCreateEntityWithEntityID(BThread.class, entityId));
     }
 
+
     @Override
     public BThread getModel(){
         return DaoCore.fetchEntityWithEntityID(BThread.class, entityId);
@@ -302,17 +303,18 @@ public class BThreadWrapper extends EntityWrapper<BThread> {
     }
 
     // TODO: Replace this with the loadMessages method (need to figure out the date ref first)
-    public Promise<List<BMessage>, Void, Void> loadMoreMessages(final int numberOfMessages){
+    public Promise<List<BMessage>, Void, Void> loadMoreMessages(final BMessage fromMessage, final int numberOfMessages){
+//    public Promise<List<BMessage>, Void, Void> loadMoreMessages(final int numberOfMessages){
 
         if (DEBUG) Timber.v("loadMoreMessages");
         final Deferred<List<BMessage>, Void, Void> deferred = new DeferredObject<>();
         
         final Date messageDate;
 
-        List<BMessage> messages = model.getMessagesWithOrder(DaoCore.ORDER_ASC);
-        BMessage earliestMessage = null;
-        if (messages.size() > 0)
-            earliestMessage = messages.get(0);
+        //List<BMessage> messages = model.getMessagesWithOrder(DaoCore.ORDER_ASC);
+        BMessage earliestMessage = fromMessage;
+//        if (messages.size() > 0)
+//            earliestMessage = messages.get(0);
             
         // If we have a message in the database then we use the latest
         if (earliestMessage != null)

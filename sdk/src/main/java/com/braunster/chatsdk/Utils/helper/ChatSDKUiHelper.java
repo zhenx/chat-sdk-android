@@ -360,6 +360,7 @@ public class ChatSDKUiHelper {
             @Override
             public void run() {
                 superCardToastProgress.dismiss();
+                superCardToastProgress = null;
             }
         }, delay);
     }
@@ -377,8 +378,8 @@ public class ChatSDKUiHelper {
             View decorView = ((Activity) context.get()).getWindow().getDecorView().findViewById(android.R.id.content);
             ViewGroup viewGroup = superCardToastProgress.getViewGroup();
 
-            if (viewGroup!=null && superCardToastProgress.getView()!= null && viewGroup.findViewById(superCardToastProgress.getView().getId()) != null)
-                viewGroup.removeView(superCardToastProgress.getView());
+//            if (viewGroup!=null && superCardToastProgress.getView()!= null && viewGroup.findViewById(superCardToastProgress.getView().getId()) != null)
+//                viewGroup.removeView(superCardToastProgress.getView());
 
             decorView.findViewById(R.id.card_container).bringToFront();
 

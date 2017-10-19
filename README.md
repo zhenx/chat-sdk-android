@@ -5,8 +5,8 @@
 
 Chat SDK is a fully featured open source instant messaging framework for Android. Chat SDK is fully featured, scalable and flexible and follows the following key principles:
 
-- **Free.** The Chat SDK is free for unlimited commercial use
-- **Open Source.** The Chat SDK is open source under the [MIT license](https://tldrlegal.com/license/mit-license)
+- **Free.** The Chat SDK is completely free
+- **Open Source.** The Chat SDK is open source under the [MIT license](https://tldrlegal.com/license/mit-license) for compiled binaries
 - **Full data control.** You have full and exclusive access to the user's chat data
 - **Quick integration.** Chat SDK is fully featured out of the box
 - **Firebase** Powered by Google Firebase
@@ -36,6 +36,12 @@ The Chat SDK has a number of additional modules that can easily be installed inc
 - [Contact book integration](http://chatsdk.co/downloads/contact-book-integration/)
 - [Push notifications](http://chatsdk.co/downloads/backendless-push-notifications/)
 
+## Help spread the word
+Chat SDK is free and open source. If you like the project help us spread the word by:
+
++ Giving us a Github star ⭐
++ Upvoting our page on [Product Hunt](https://www.producthunt.com/posts/chat-sdk)
+
 ## Get involved!
 We're very excited about the project and we're looking for other people to get involved. Over time we would like to make the best messaging framework for mobile. Helping us could involve any of the following:
 
@@ -47,16 +53,44 @@ We're very excited about the project and we're looking for other people to get i
 + Help us update the library to use Swift
 + Helping to write adapters for other services such as Layer, Pusher, Pubnub etc... 
 
-If you're interested please email me at [**team@chatsdk.co**](mailto:team@chatsdk.co).
+If you're interested please review the [Contributing
+Document](https://github.com/chat-sdk/chat-sdk-android/blob/master/CONTRIBUTING.md) for details of our development flow and the CLA then email me at [**team@chatsdk.co**](mailto:team@chatsdk.co).
+
+## Apps that use Chat SDK
+
++ [Parlor](http://parlor.me/)
++ [Voice - Instant Messaging App](https://play.google.com/store/apps/details?id=com.skintmedia.voice&hl=en_GB)
++ [Nex Tv Latino](https://play.google.com/store/apps/details?id=com.helpdevs.nexttv)
+
+If you have an app that uses the Chat SDK let us know and we'll add a link. 
 
 ## The license
-This project uses the MIT license which is a commercially friendly open source license. The license has the following features:
 
-+ Commercial use is allowed
-+ You can modify, distribute and sublicense the source code
-+ The work is provided "as is". You may not hold the author liable.
-+ You must include the copyright notice
-+ You must include the license 
+We offer a choice of two license for this app. You can either use the [Chat SDK](https://chatsdk.co/chat-sdk-license/) license or the [GPLv3](https://www.gnu.org/licenses/gpl-3.0.en.html) license. 
+
+Most Chat SDK users either want to add the Chat SDK to an app that will be released to the Play Store or they want to use the Chat SDK in a project for their client. The **Chat SDK** license gives you complete flexibility to do this for free.
+
+**Chat SDK License Summary**
+
++ License does not expire.
++ Can be used for creating unlimited applications
++ Can be distributed in binary or object form only
++ Commercial use allowed
++ Can modify source-code but cannot distribute modifications (derivative works)
+
+If a user wants to distribute the Chat SDK source code, we feel that any additions or modifications they make to the code should be contributed back to the project. The GPLv3 license ensures that if source code is distributed, it must remain open source and available to the community.
+
+**GPLv3 License Summary**
+
++ Can modify and distribute source code
++ Commerical use allowed
++ Cannot sublicense or hold liable
++ Must include original license
++ Must disclose source 
+
+**What does this mean?**
+
+Please check out the [Licensing FAQ](https://github.com/chat-sdk/chat-sdk-android/blob/master/LICENSE.md) for more information.
 
 ## Wiki
 

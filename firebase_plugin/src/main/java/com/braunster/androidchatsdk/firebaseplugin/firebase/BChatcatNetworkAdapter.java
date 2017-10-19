@@ -16,6 +16,8 @@ import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BMessageWra
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BThreadWrapper;
 import com.braunster.androidchatsdk.firebaseplugin.firebase.wrappers.BUserWrapper;
 import com.braunster.chatsdk.Utils.Debug;
+import com.braunster.chatsdk.Utils.helper.ChatSDKUiHelper;
+import com.braunster.chatsdk.activities.ChatSDKBaseActivity;
 import com.braunster.chatsdk.dao.BMessage;
 import com.braunster.chatsdk.dao.BThread;
 import com.braunster.chatsdk.dao.BUser;
@@ -25,6 +27,7 @@ import com.braunster.chatsdk.dao.core.DaoCore;
 import com.braunster.chatsdk.network.AbstractNetworkAdapter;
 import com.braunster.chatsdk.network.BDefines;
 import com.braunster.chatsdk.network.BFirebaseDefines;
+import com.braunster.chatsdk.network.BNetworkManager;
 import com.braunster.chatsdk.object.BError;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -547,8 +550,8 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
     }
     
     @Override
-    public Promise<List<BMessage>, Void, Void> loadMoreMessagesForThread(BThread thread) {
-        return new BThreadWrapper(thread).loadMoreMessages(BFirebaseDefines.NumberOfMessagesPerBatch);
+    public Promise<List<BMessage>, Void, Void> loadMoreMessagesForThread(final BMessage fromMessage, BThread thread) {
+        return new BThreadWrapper(thread).loadMoreMessages(fromMessage, BFirebaseDefines.NumberOfMessagesPerBatch);
     }
 
     @Override
@@ -793,6 +796,27 @@ public class BChatcatNetworkAdapter extends BFirebaseNetworkAdapter {
         
         return deferred.promise();
     }
+
+    public void test () {
+
+        AbstractNetworkAdapter a = BNetworkManager.sharedManager().getNetworkAdapter();
+        String name = "Name";
+        BUser user1 = null;
+        BUser user2 = null;
+        a.createThreadWithUsers(name, user1, user2).done(new DoneCallback<BThread>() {
+            @Override
+            public void onDone(final BThread thread) {
+                ChatSDKUiHelper helper = ChatSDKUiHelper.getInstance();
+                helper.startChatActivityForID(thread.getId());
+            }
+        })
+        .fail(new FailCallback<BError>() {
+            @Override
+            public void onFail(BError error) {
+            }
+        });
+    }
+
 
     @Override
     public Promise<BThread, BError, Void>  pushThread(BThread thread) {

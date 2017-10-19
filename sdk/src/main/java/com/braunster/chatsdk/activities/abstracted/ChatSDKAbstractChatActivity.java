@@ -335,7 +335,13 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
             public void onRefresh() {
                 if (DEBUG) Timber.d("onRefreshStarted");
 
-                BNetworkManager.sharedManager().getNetworkAdapter().loadMoreMessagesForThread(thread)
+                List<ChatSDKMessagesListAdapter.MessageListItem> items = messagesListAdapter.getListData();
+                BMessage firstMessage = null;
+                if(items.size() > 0) {
+                    firstMessage = items.get(0).asBMessage();
+                }
+
+                BNetworkManager.sharedManager().getNetworkAdapter().loadMoreMessagesForThread(firstMessage, thread)
                         .done(new DoneCallback<List<BMessage>>() {
                             @Override
                             public void onDone(List<BMessage> bMessages) {
@@ -621,9 +627,6 @@ public abstract class ChatSDKAbstractChatActivity extends ChatSDKBaseActivity im
 
         chatSDKChatHelper.checkIfWantToShare(intent);
     }
-
-
-
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
