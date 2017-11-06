@@ -20,15 +20,15 @@ android {
         versionCode CHAT_SDK_BUILD_NUMBER as int
     }
 
-    flavourDimensions "default"
+//    flavourDimensions "default"
 
     productFlavors {
         dev {
-            dimension "default"
+//            dimension "default"
             minSdkVersion 21
         }
         prod {
-            dimension "default"
+//            dimension "default"
             minSdkVersion Integer.parseInt(project.MIN_SDK)
         }
     }
