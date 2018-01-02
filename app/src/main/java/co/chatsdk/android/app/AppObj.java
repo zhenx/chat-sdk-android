@@ -23,12 +23,14 @@ public class AppObj extends MultiDexApplication {
         Context context = getApplicationContext();
 
         Configuration.Builder builder = new Configuration.Builder(context);
+//        builder.firebaseRootPath("firebase_v4_web_new_4");
+        builder.firebaseRootPath("firebase_v4_web_new_4_test");
 
         ChatSDK.initialize(builder.build());
 
         UserInterfaceModule.activate(context);
 
-        FirebaseModule.activate(context);
+        FirebaseModule.activate();
 
         FirebaseFileStorageModule.activate();
         FirebasePushModule.activateForFirebase();
