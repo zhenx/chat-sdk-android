@@ -296,6 +296,7 @@ public class ChatActivity extends BaseActivity implements TextInputDelegate, Cha
                     @Override
                     public void onSubscribe(@NonNull Disposable d) {
                         //disposableList.add(d);
+                        Timber.v("Subscribe");
                     }
 
                     @Override
@@ -310,7 +311,7 @@ public class ChatActivity extends BaseActivity implements TextInputDelegate, Cha
                     @Override
                     public void onError(@NonNull Throwable e) {
                         e.printStackTrace();
-                        ToastHelper.show(getApplicationContext(), R.string.unable_to_send_image_message);
+                        ToastHelper.show(getApplicationContext(), e.getLocalizedMessage());
                     }
 
                     @Override
@@ -361,12 +362,19 @@ public class ChatActivity extends BaseActivity implements TextInputDelegate, Cha
                         message.update();
 
                         boolean isAdded = messageListAdapter.addRow(message);
-                        if(!isAdded) {
+
+                        if(isAdded) {
                             messageListAdapter.notifyDataSetChanged();
+                        }
+                        // If we sent the message resort the list in case our clock is set to the wrong time
+                        // otherwise messages can appear out of order
+                        else if (message.getSender().isMe()) {
+                            messageListAdapter.sortAndNotify();
                         }
 
                         // Check if the message from the current user, If so return so we wont vibrate for the user messages.
                         if (message.getSender().isMe() && isAdded) {
+
                             scrollListTo(ListPosition.Bottom, layoutManager().findLastVisibleItemPosition() > messageListAdapter.size() - 2);
                         }
                         else {
@@ -697,7 +705,7 @@ public class ChatActivity extends BaseActivity implements TextInputDelegate, Cha
     public void startTyping () {
         setChatState(TypingIndicatorHandler.State.composing);
         typingTimerDisposable = Observable.just(true).delay(5000, TimeUnit.MILLISECONDS)
-                .subscribeOn(Schedulers.io())
+                 .subscribeOn(Schedulers.io())
                 .subscribe(new Consumer<Boolean>() {
             @Override
             public void accept(@NonNull Boolean aBoolean) throws Exception {

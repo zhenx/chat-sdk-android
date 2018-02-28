@@ -36,7 +36,6 @@ import io.reactivex.schedulers.Schedulers;
 
 public class MessageWrapper  {
 
-    private static boolean DEBUG = true;
     private Message model;
 
     public MessageWrapper(Message model){
@@ -143,7 +142,7 @@ public class MessageWrapper  {
 
         }
 
-        DaoCore.updateEntity(model);
+        model.update();
     }
 
     public Completable push() {

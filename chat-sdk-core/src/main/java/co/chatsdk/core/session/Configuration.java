@@ -69,6 +69,10 @@ public class Configuration {
     public boolean imageMessagesEnabled = true;
     public boolean locationMessagesEnabled = true;
 
+    // Message colors
+    public String messageColorMe = null;
+    public String messageColorReply = null;
+
     // Chat options
     public boolean groupsEnabled = true;
     public boolean threadDetailsEnabled = true;
@@ -82,24 +86,33 @@ public class Configuration {
     public int maxInboxNotificationLines = 7;
     public boolean imageCroppingEnabled = true;
 
+    public String messageTimeFormat = "HH:mm";
+
     public String defaultNamePrefix = "ChatSDK";
-    public String defaultName = defaultNamePrefix + String.valueOf(new Random().nextInt(1000));
+    public String defaultName = null;
     public String imageDirectoryName = "ChatSDK";
     public String contactDeveloperEmailAddress = "support@chatsdk.co";
     public String contactDeveloperEmailSubject = "";
     public String contactDeveloperDialogTitle = "";
     public String defaultUserAvatarURL = "http://flathash.com/" + String.valueOf(new Random().nextInt(1000)) + ".png";
 
+    public int loginScreenDrawableResourceID = -1;
+
     public long readReceiptMaxAge = TimeUnit.DAYS.toMillis(7);
 
     public HashMap<String, Object> customProperties = new HashMap<>();
 
-    public Object getCustomProperty (String key) {
-        return customProperties.get(key);
+
+    public Configuration () {
+        updateDefaultName();
     }
 
     public boolean twitterLoginEnabled () {
         return !StringChecker.isNullOrEmpty(twitterKey) && !StringChecker.isNullOrEmpty(twitterSecret) && twitterLoginEnabled;
+    }
+
+    public void updateDefaultName () {
+        defaultName = defaultNamePrefix + String.valueOf(new Random().nextInt(1000));
     }
 
     public boolean googleLoginEnabled () {
@@ -324,11 +337,17 @@ public class Configuration {
 
         public Builder defaultNamePrefix(String value) {
             config.defaultNamePrefix = value;
+            config.updateDefaultName();
             return this;
         }
 
         public Builder defaultName(String value) {
             config.defaultName = value;
+            return this;
+        }
+
+        public Builder setMessageTimeFormat (String format) {
+            config.messageTimeFormat = format;
             return this;
         }
 
@@ -354,6 +373,11 @@ public class Configuration {
 
         public Builder imageDirectoryName (String value) {
             config.imageDirectoryName = value;
+            return this;
+        }
+
+        public Builder loginScreenDrawableResourceID (int resource) {
+            config.loginScreenDrawableResourceID = resource;
             return this;
         }
 

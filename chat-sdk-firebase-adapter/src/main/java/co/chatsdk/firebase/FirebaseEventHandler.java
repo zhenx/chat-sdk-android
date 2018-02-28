@@ -178,63 +178,63 @@ public class FirebaseEventHandler implements EventHandler {
         }
 
         // TODO: Check this
-        DatabaseReference followersRef = FirebasePaths.userFollowersRef(entityID);
-        ChildEventListener followersListener = followersRef.addChildEventListener(new FirebaseEventListener().onChildAdded(new FirebaseEventListener.Change() {
-            @Override
-            public void trigger(DataSnapshot snapshot, String s, boolean hasValue) {
-
-                //TODO: Implement this
-
-                //FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
+//        DatabaseReference followersRef = FirebasePaths.userFollowersRef(entityID);
+//        ChildEventListener followersListener = followersRef.addChildEventListener(new FirebaseEventListener().onChildAdded(new FirebaseEventListener.Change() {
+//            @Override
+//            public void trigger(DataSnapshot snapshot, String s, boolean hasValue) {
 //
+//                //TODO: Implement this
 //
+//                //FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
+////
+////
+////
+////                UserWrapper wrapper = UserWrapper.initWithModel(follower.getUser());
+////                wrapper.once();
+////                wrapper.metaOn();
 //
-//                UserWrapper wrapper = UserWrapper.initWithModel(follower.getUser());
-//                wrapper.once();
-//                wrapper.metaOn();
-
-                eventSource.onNext(NetworkEvent.followerAdded());
-
-            }
-        }).onChildRemoved(new FirebaseEventListener.Removed() {
-            @Override
-            public void trigger(DataSnapshot snapshot, boolean hasValue) {
-
-//                FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
-//                DaoCore.deleteEntity(follower);
-
-                eventSource.onNext(NetworkEvent.followerRemoved());
-
-            }
-        }));
-        FirebaseReferenceManager.shared().addRef(followersRef, followersListener);
-
-        DatabaseReference followingRef = FirebasePaths.userFollowingRef(entityID);
-        ChildEventListener followingListener = followingRef.addChildEventListener(new FirebaseEventListener().onChildAdded(new FirebaseEventListener.Change() {
-            @Override
-            public void trigger(DataSnapshot snapshot, String s, boolean hasValue) {
-
-                // TODO: Implement this
-//                FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
+//                eventSource.onNext(NetworkEvent.followerAdded());
 //
-//                UserWrapper wrapper = UserWrapper.initWithModel(follower.getUser());
-//                wrapper.once();
-//                wrapper.metaOn();
-
-                eventSource.onNext(NetworkEvent.followingAdded());
-
-            }
-        }).onChildRemoved(new FirebaseEventListener.Removed() {
-            @Override
-            public void trigger(DataSnapshot snapshot, boolean hasValue) {
-
-//                FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
-//                DaoCore.deleteEntity(follower);
-
-                eventSource.onNext(NetworkEvent.followingRemoved());
-            }
-        }));
-        FirebaseReferenceManager.shared().addRef(followersRef, followingListener);
+//            }
+//        }).onChildRemoved(new FirebaseEventListener.Removed() {
+//            @Override
+//            public void trigger(DataSnapshot snapshot, boolean hasValue) {
+//
+////                FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
+////                DaoCore.deleteEntity(follower);
+//
+//                eventSource.onNext(NetworkEvent.followerRemoved());
+//
+//            }
+//        }));
+//        FirebaseReferenceManager.shared().addRef(followersRef, followersListener);
+//
+//        DatabaseReference followingRef = FirebasePaths.userFollowingRef(entityID);
+//        ChildEventListener followingListener = followingRef.addChildEventListener(new FirebaseEventListener().onChildAdded(new FirebaseEventListener.Change() {
+//            @Override
+//            public void trigger(DataSnapshot snapshot, String s, boolean hasValue) {
+//
+//                // TODO: Implement this
+////                FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
+////
+////                UserWrapper wrapper = UserWrapper.initWithModel(follower.getUser());
+////                wrapper.once();
+////                wrapper.metaOn();
+//
+//                eventSource.onNext(NetworkEvent.followingAdded());
+//
+//            }
+//        }).onChildRemoved(new FirebaseEventListener.Removed() {
+//            @Override
+//            public void trigger(DataSnapshot snapshot, boolean hasValue) {
+//
+////                FollowerLink follower = (FollowerLink) FirebaseInterface.objectFromSnapshot(snapshot);
+////                DaoCore.deleteEntity(follower);
+//
+//                eventSource.onNext(NetworkEvent.followingRemoved());
+//            }
+//        }));
+//        FirebaseReferenceManager.shared().addRef(followersRef, followingListener);
 
         contactsMetaOn().subscribe();
     }

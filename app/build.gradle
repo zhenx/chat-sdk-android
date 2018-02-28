@@ -32,7 +32,7 @@ android {
     signingConfigs {
         release {
             storeFile file('/Users/ben/.android/release.keystore')
-            keyAlias 'androiddebugkey'
+            keyAlias 'androidreleasekey'
             storePassword 'R3l3ase123!'
             keyPassword 'R3l3ase123!'
         }
@@ -81,6 +81,7 @@ dependencies {
     compile project(path: ':chat-sdk-firebase-file-storage')
 
     compile project(path: ':chat-sdk-firebase-ui')
+    compile project(path: ':chat-sdk-firebase-social-login')
 }
 
 apply plugin: 'com.google.gms.google-services'

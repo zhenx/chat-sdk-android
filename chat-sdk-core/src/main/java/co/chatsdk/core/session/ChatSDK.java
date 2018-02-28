@@ -25,13 +25,12 @@ public class ChatSDK {
 
     private void setContext (Context context) {
         this.context = new WeakReference<>(context);
-        DaoCore.init(context);
     }
 
     public static ChatSDK initialize (Configuration config) {
         shared().setContext(config.context.get());
         shared().config = config;
-
+        DaoCore.init(config.context.get());
 
 //        if (debug) {
         // TODO: Update this

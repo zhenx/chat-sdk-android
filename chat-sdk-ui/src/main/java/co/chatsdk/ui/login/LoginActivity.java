@@ -114,6 +114,10 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
             passwordEditText.setText(ChatSDK.config().debugPassword);
         }
 
+        if(ChatSDK.config().loginScreenDrawableResourceID > 0) {
+            appIconImage.setImageResource(ChatSDK.config().loginScreenDrawableResourceID);
+        }
+
     }
 
     @Override
@@ -257,8 +261,10 @@ public class LoginActivity extends BaseActivity implements View.OnClickListener 
     }
 
     public void passwordLogin() {
-        if (!checkFields())
+        if (!checkFields()) {
+            dismissProgressDialog();
             return;
+        }
 
         if(!isNetworkAvailable()) {
             Timber.v("Network Connection unavailable");

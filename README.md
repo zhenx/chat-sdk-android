@@ -224,7 +224,7 @@ InterfaceManager.shared().a.startLoginActivity(context, true);
 
 ### Enabling location messages
 
-The Chat SDK needs two google services to support location messages. The [Google Places API](https://developers.google.com/places/) to select the location and the [Google Maps API](https://developers.google.com/maps/documentation/android-api/) to display the location. 
+The Chat SDK needs two google services to support location messages. The [Google Places API](https://developers.google.com/places/) to select the location and the [Google Static Maps API](https://developers.google.com/maps/documentation/static-maps/) to display the location. 
 
 Then add the following to your `AndroidManifest.xml` file:
 
@@ -385,6 +385,18 @@ FirebaseSocialLoginModule.activate(getApplicationContext());
   ```
   <string name="facebook_app_identifier">[FACEBOOK APP KEY]</string>
   ```
+  
+  6. Go back to the Facebook site and click "Add Platform". Choose Android and enter your **Bundle ID**. Then you will need to enter add the **Key Hashes** property. To do this first generate a [key store](https://developer.android.com/studio/publish/app-signing.html) for your app. Then generate the hash by running the following on MacOS:
+
+  ```
+  keytool -exportcert -alias <RELEASE_KEY_ALIAS> -keystore <RELEASE_KEY_PATH> | openssl sha1 -  binary | openssl base64
+  ```
+
+  On Windows, use:
+
+  ```
+  keytool -exportcert -alias <RELEASE_KEY_ALIAS> -keystore <RELEASE_KEY_PATH> | openssl sha1 -binary | openssl base64
+  ```
 
 #### Twitter
 
@@ -409,6 +421,14 @@ FirebaseSocialLoginModule.activate(getApplicationContext());
 #### Google
   
 1. If you haven't yet specified your app's SHA-1 fingerprint, do so from the [Settings page](https://console.firebase.google.com/project/_/settings/general/) of the Firebase console. See [Authenticating Your Client](https://developers.google.com/android/guides/client-auth) for details on how to get your app's SHA-1 fingerprint.
+
+  ```
+  keytool -exportcert -alias [KEY ALIAS] -keystore [PATH/TO/KEYSTORE] -list -v  
+  ```
+
+ >**Note:**
+ >You may need to add multiple keys for debug and release
+
 2. In the [Firebase console](https://console.firebase.google.com/), open the **Auth** section.
 3. On the **Sign in method** tab, enable the **Google** sign-in method and click **Save**.
 4. You must pass your [server's client ID](https://developers.google.com/identity/sign-in/android/start-integrating#get_your_backend_servers_oauth_20_client_id) to the requestIdToken method. To find the OAuth 2.0 client ID.

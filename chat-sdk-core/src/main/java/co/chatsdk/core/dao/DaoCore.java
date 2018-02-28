@@ -28,8 +28,7 @@ import timber.log.Timber;
  * Manage all creation, deletion and updating Entities.
  */
 public class DaoCore {
-    private static final String TAG = DaoCore.class.getSimpleName();
-    //private static final boolean DEBUG = Debug.DaoCore;
+    // TODO: Change this!
     private static final String DB_NAME = "andorid-chatsdk-database";
     private static String dbName;
 
@@ -41,7 +40,7 @@ public class DaoCore {
 
     private static Context context;
 
-    private static DaoMaster.DevOpenHelper helper;
+    private static DaoMaster.OpenHelper helper;
 
     @SuppressWarnings("all")
     private static SQLiteDatabase db;
@@ -76,7 +75,14 @@ public class DaoCore {
         if (context == null)
             throw new NullPointerException("Context is null, Did you initialized DaoCore?");
 
-        helper = new DaoMaster.DevOpenHelper(context, dbName, null);
+//        if(ChatSDK.config().debug) {
+            helper = new DaoMaster.DevOpenHelper(context, dbName, null);
+//        }
+        // TODO: Fix the database migration code
+//        else {
+//            helper = new DatabaseUpgradeHelper(context, dbName);
+//        }
+
         db = helper.getWritableDatabase();
         daoMaster = new DaoMaster(db);
         daoSession = daoMaster.newSession();

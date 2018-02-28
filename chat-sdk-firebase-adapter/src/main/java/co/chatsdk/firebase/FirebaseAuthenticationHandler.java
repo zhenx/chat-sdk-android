@@ -47,7 +47,6 @@ public class FirebaseAuthenticationHandler extends AbstractAuthenticationHandler
         return Single.create(new SingleOnSubscribe<FirebaseUser>() {
             @Override
             public void subscribe(final SingleEmitter<FirebaseUser> e) throws Exception {
-
                 if (isAuthenticating()) {
                     e.onError(ChatError.getError(ChatError.Code.AUTH_IN_PROCESS, "Cant execute two auth in parallel"));
                 }
@@ -303,7 +302,6 @@ public class FirebaseAuthenticationHandler extends AbstractAuthenticationHandler
         }).subscribeOn(Schedulers.single());
     }
 
-    // TODO: Allow users to turn anonymous login off or on in settings
     public Boolean accountTypeEnabled(AccountDetails.Type type) {
         if(type == AccountDetails.Type.Anonymous) {
             return ChatSDK.config().anonymousLoginEnabled;

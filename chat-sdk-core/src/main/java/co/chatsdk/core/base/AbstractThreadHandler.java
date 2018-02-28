@@ -30,15 +30,12 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
-import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
-import timber.log.Timber;
 
 
 /**
@@ -113,21 +110,9 @@ public abstract class AbstractThreadHandler implements ThreadHandler {
                 e.onNext(new MessageSendProgress(message));
                 e.onComplete();
             }
-        }).flatMap(new Function<MessageSendProgress, ObservableSource<MessageSendProgress>>() {
-            @Override
-            public ObservableSource<MessageSendProgress> apply(MessageSendProgress messageSendProgress) throws Exception {
-                return handleMessageSend(message, sendMessage(message));
-            }
-        }).subscribeOn(Schedulers.single()).doOnComplete(new Action() {
-            @Override
-            public void run() throws Exception {
-                Timber.v("Complete");
-            }
-        });
-    }
-
-    public static Observable<MessageSendProgress> handleMessageSend (final Message message, Observable<MessageSendProgress> messageSendObservable) {
-        return messageSendObservable.doOnComplete(new Action() {
+        }).concatWith(sendMessage(message))
+          .subscribeOn(Schedulers.single())
+          .doOnComplete(new Action() {
             @Override
             public void run() throws Exception {
                 message.setMessageStatus(MessageSendStatus.Sent);
@@ -139,7 +124,7 @@ public abstract class AbstractThreadHandler implements ThreadHandler {
                 message.setMessageStatus(MessageSendStatus.Failed);
                 message.update();
             }
-        }).subscribeOn(Schedulers.single());
+        });
     }
 
     public int getUnreadMessagesAmount(boolean onePerThread){

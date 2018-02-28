@@ -241,9 +241,11 @@ public class ThreadWrapper  {
                                     message.getModel().update();
                                     model.update();
 
-                                    if (newMessage) {
+                                    // Fix an issue where messages can become unordered if the phone's
+                                    // date is set incorrectly
+//                                    if (newMessage) {
                                         e.onNext(message.getModel());
-                                    }
+//                                    }
                                     updateReadReceipts();
                                 }
                             }
@@ -589,7 +591,7 @@ public class ThreadWrapper  {
         return Completable.create(new CompletableOnSubscribe() {
             @Override
             public void subscribe(final CompletableEmitter e) throws Exception {
-                FirebasePaths.threadRef(model.getEntityID()).child(FirebasePaths.LastMessagePath).setValue(messageData, new DatabaseReference.CompletionListener() {
+                FirebasePaths.threadLastMessageRef(model.getEntityID()).setValue(messageData, new DatabaseReference.CompletionListener() {
                     @Override
                     public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                         if(databaseError == null) {

@@ -9,6 +9,8 @@ import com.google.firebase.database.DatabaseReference;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URL;
 import java.util.Date;
 
 import co.chatsdk.core.base.AbstractCoreHandler;
@@ -62,10 +64,11 @@ public class FirebaseCoreHandler extends AbstractCoreHandler {
             @Override
             public void subscribe(@NonNull final SingleEmitter<User> e) throws Exception {
                 // Check to see if the avatar URL is local or remote
-                File avatar = new File(NM.currentUser().getAvatarURL());
-                if (avatar.exists() && NM.upload() != null) {
+                File avatar = new File(new URI(NM.currentUser().getAvatarURL()).getPath());
+                Bitmap bitmap = BitmapFactory.decodeFile(avatar.getPath());
+
+                if (new URL(NM.currentUser().getAvatarURL()).getHost() != null && bitmap != null && NM.upload() != null) {
                     // Upload the image
-                    Bitmap bitmap = BitmapFactory.decodeFile(avatar.getPath());
                     NM.upload().uploadImage(bitmap).subscribe(new Observer<FileUploadResult>() {
                         @Override
                         public void onSubscribe(@NonNull Disposable d) {

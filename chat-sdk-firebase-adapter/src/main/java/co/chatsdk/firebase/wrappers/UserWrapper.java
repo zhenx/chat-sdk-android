@@ -123,13 +123,10 @@ public class UserWrapper {
 
         if (!StringChecker.isNullOrEmpty(profileURL) && StringChecker.isNullOrEmpty(model.getAvatarURL())) {
             model.setAvatarURL(profileURL);
-            model.setThumbnailURL(profileURL);
         }
         else {
             String url = ChatSDK.config().defaultUserAvatarURL;
             model.setAvatarURL(url);
-            model.setThumbnailURL(url);
-
         }
 
         model.update();

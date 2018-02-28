@@ -9,11 +9,9 @@ import co.chatsdk.core.session.Configuration;
 import co.chatsdk.firebase.FirebaseModule;
 import co.chatsdk.firebase.file_storage.FirebaseFileStorageModule;
 import co.chatsdk.firebase.push.FirebasePushModule;
+import co.chatsdk.firebase.social_login.FirebaseSocialLoginModule;
 import co.chatsdk.ui.manager.UserInterfaceModule;
 
-/**
- * Created by itzik on 6/8/2014.
- */
 public class AppObj extends MultiDexApplication {
 
     @Override
@@ -23,17 +21,22 @@ public class AppObj extends MultiDexApplication {
         Context context = getApplicationContext();
 
         Configuration.Builder builder = new Configuration.Builder(context);
+
+        // Stefan
+        builder.defaultUserAvatarUrl("https://firebasestorage.googleapis.com/v0/b/beep-3e40a.appspot.com/o/default%2Ficn_100_car%403x.png?alt=media&token=f71f9b3b-75c4-4c4f-9317-9eaffeaad05b");
+
 //        builder.firebaseRootPath("firebase_v4_web_new_4");
         builder.firebaseRootPath("18_02");
 
         ChatSDK.initialize(builder.build());
 
+        FirebaseModule.activate();
         UserInterfaceModule.activate(context);
 
-        FirebaseModule.activate();
 
         FirebaseFileStorageModule.activate();
         FirebasePushModule.activateForFirebase();
+        FirebaseSocialLoginModule.activate(context);
 
 
     }
