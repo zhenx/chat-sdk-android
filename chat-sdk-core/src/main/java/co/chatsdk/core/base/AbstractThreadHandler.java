@@ -45,16 +45,13 @@ import io.reactivex.schedulers.Schedulers;
 public abstract class AbstractThreadHandler implements ThreadHandler {
 
     public Single<List<Message>> loadMoreMessagesForThread(final Message fromMessage, final Thread thread) {
-        return Single.create(new SingleOnSubscribe<List<Message>>() {
-            @Override
-            public void subscribe(final SingleEmitter<List<Message>> e) throws Exception {
+        return Single.create((SingleOnSubscribe<List<Message>>) e -> {
 
-                Date messageDate = fromMessage != null ? fromMessage.getDate().toDate() : new Date();
+            Date messageDate = fromMessage != null ? fromMessage.getDate().toDate() : new Date();
 
-                // First try to load the messages from the database
-                List<Message> list = StorageManager.shared().fetchMessagesForThreadWithID(thread.getId(), FirebaseDefines.NumberOfMessagesPerBatch + 1, messageDate);
-                e.onSuccess(list);
-            }
+            // First try to load the messages from the database
+            List<Message> list = StorageManager.shared().fetchMessagesForThreadWithID(thread.getId(), FirebaseDefines.NumberOfMessagesPerBatch + 1, messageDate);
+            e.onSuccess(list);
         }).subscribeOn(Schedulers.single());
     }
 
@@ -68,19 +65,16 @@ public abstract class AbstractThreadHandler implements ThreadHandler {
      * When done or when an error occurred the calling method will be notified.
      */
     public Observable<MessageSendProgress> sendMessageWithText(final String text, final Thread thread) {
-        return Observable.create(new ObservableOnSubscribe<MessageSendProgress>() {
-            @Override
-            public void subscribe(final ObservableEmitter<MessageSendProgress> e) throws Exception {
+        return Observable.create((ObservableOnSubscribe<MessageSendProgress>) e -> {
 
-                final Message message = newMessage(MessageType.Text, thread);
-                message.setTextString(text);
+            final Message message = newMessage(MessageType.Text, thread);
+            message.setTextString(text);
 
-                e.onNext(new MessageSendProgress(message));
+            e.onNext(new MessageSendProgress(message));
 
-                ObservableConnector<MessageSendProgress> connector = new ObservableConnector<>();
-                connector.connect(implSendMessage(message), e);
+            ObservableConnector<MessageSendProgress> connector = new ObservableConnector<>();
+            connector.connect(implSendMessage(message), e);
 
-            }
         }).subscribeOn(Schedulers.single());
 
     }
