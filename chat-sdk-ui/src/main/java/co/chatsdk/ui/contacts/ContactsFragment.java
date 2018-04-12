@@ -9,7 +9,6 @@ package co.chatsdk.ui.contacts;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -24,27 +23,23 @@ import android.widget.ProgressBar;
 import java.util.ArrayList;
 import java.util.List;
 
-import co.chatsdk.core.session.NM;
-import co.chatsdk.core.session.StorageManager;
 import co.chatsdk.core.dao.DaoCore;
 import co.chatsdk.core.dao.Thread;
 import co.chatsdk.core.dao.User;
 import co.chatsdk.core.events.EventType;
 import co.chatsdk.core.events.NetworkEvent;
+import co.chatsdk.core.session.NM;
+import co.chatsdk.core.session.StorageManager;
 import co.chatsdk.core.utils.DisposableList;
 import co.chatsdk.core.utils.UserListItemConverter;
-import co.chatsdk.ui.manager.InterfaceManager;
 import co.chatsdk.ui.R;
 import co.chatsdk.ui.main.BaseFragment;
+import co.chatsdk.ui.manager.InterfaceManager;
 import co.chatsdk.ui.search.SearchActivity;
 import co.chatsdk.ui.utils.ToastHelper;
 import io.reactivex.Completable;
-import io.reactivex.CompletableEmitter;
-import io.reactivex.CompletableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -66,10 +61,7 @@ public class ContactsFragment extends BaseFragment {
 
     /** When a user clicked he will be added to the current thread.*/
     public static final int CLICK_MODE_ADD_USER_TO_THREAD = 2991;
-    /** Used for the share intent, When a user press on a user the attached bundle from the share intent will be sent to the selected user.*/
-    public static final int CLICK_MODE_SHARE_CONTENT = 2992;
-    /** Open profile context when user is clicked.*/
-    public static final int CLICK_MODE_SHOW_PROFILE = 2993;
+
     /** Nothing happen on list item click.*/
     public static final int CLICK_MODE_NONE = 2994;
 
@@ -105,7 +97,7 @@ public class ContactsFragment extends BaseFragment {
      *  #MODE_LOAD_THREAD_USERS
      *  #MODE_USE_SOURCE
      *  */
-    protected int loadingMode;
+    protected int loadingMode = MODE_LOAD_CONTACTS;
 
     /** Determine what happen after a user is clicked.
      *
@@ -124,23 +116,7 @@ public class ContactsFragment extends BaseFragment {
     protected boolean inflateMenu = true;
 
     /** When isDialog = true the dialog will always show the list of users given to him or pulled by the thread id.*/
-    private boolean isDialog = false;
-
-    public static ContactsFragment newInstance() {
-        ContactsFragment f = new ContactsFragment();
-        f.setLoadingMode(MODE_LOAD_CONTACTS);
-        Bundle b = new Bundle();
-        f.setArguments(b);
-        return f;
-    }
-
-    public static ContactsFragment newInstance(int loadingMode, int clickMode, Object extraData) {
-        ContactsFragment f = new ContactsFragment();
-        f.setLoadingMode(loadingMode);
-        f.setClickMode(clickMode);
-        f.setExtraData(extraData);
-        return f;
-    }
+    protected boolean isDialog = false;
 
     /** Creates a new contact dialog.
      * @param threadID - The id of the thread that his users is the want you want to show.

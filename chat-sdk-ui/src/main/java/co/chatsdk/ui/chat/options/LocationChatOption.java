@@ -18,8 +18,7 @@ public class LocationChatOption extends BaseChatOption {
     public LocationChatOption(String title, Integer iconResourceId) {
         super(title, iconResourceId, null, ChatOptionType.SendMessage);
 
-
-        action = (activity, result, thread) -> Observable.create((ObservableOnSubscribe<MessageSendProgress>) e -> {
+        action = (activity, result, thread) -> Observable.create( (ObservableOnSubscribe<MessageSendProgress>) e -> {
             try {
                 final LocationSelector locationSelector = new LocationSelector();
 
@@ -41,6 +40,7 @@ public class LocationChatOption extends BaseChatOption {
                 ToastHelper.show(activity, ex.getLocalizedMessage());
             }
         });
+
     }
 
     public LocationChatOption(String title) {

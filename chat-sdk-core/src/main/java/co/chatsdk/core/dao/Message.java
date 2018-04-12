@@ -212,11 +212,17 @@ public class Message implements CoreEntity {
 
     public void setUserReadStatus (User user, ReadStatus status, DateTime date) {
         ReadReceiptUserLink link = linkForUser(user);
+
         if(link == null) {
             link = StorageManager.shared().createEntity(ReadReceiptUserLink.class);
             readReceiptLinks.add(link);
             update();
         }
+
+        if (status.getValue() <= link.getStatus()) {
+            return;
+        }
+
         link.setUser(user);
         link.setStatus(status.getValue());
         link.setDate(date);

@@ -350,28 +350,28 @@ public class ChatActivity extends BaseActivity implements TextInputDelegate, Cha
                     message.setRead(true);
                     message.update();
 
-                        boolean isAdded = messageListAdapter.addRow(message);
+                    boolean isAdded = messageListAdapter.addRow(message);
 
-                        if(isAdded) {
-                            messageListAdapter.notifyDataSetChanged();
-                        }
-                        // If we sent the message resort the list in case our clock is set to the wrong time
-                        // otherwise messages can appear out of order
-                        else if (message.getSender().isMe()) {
-                            messageListAdapter.sortAndNotify();
-                        }
+                    if(isAdded) {
+                        messageListAdapter.notifyDataSetChanged();
+                    }
+                    // If we sent the message resort the list in case our clock is set to the wrong time
+                    // otherwise messages can appear out of order
+                    else if (message.getSender().isMe()) {
+                        messageListAdapter.sortAndNotify();
+                    }
 
-                        // Check if the message from the current user, If so return so we wont vibrate for the user messages.
-                        if (message.getSender().isMe() && isAdded) {
+                    // Check if the message from the current user, If so return so we wont vibrate for the user messages.
+                    if (message.getSender().isMe() && isAdded) {
 
-                            scrollListTo(ListPosition.Bottom, layoutManager().findLastVisibleItemPosition() > messageListAdapter.size() - 2);
+                        scrollListTo(ListPosition.Bottom, layoutManager().findLastVisibleItemPosition() > messageListAdapter.size() - 2);
+                    }
+                    else {
+                        // If the user is near the bottom, then we scroll down when a message comes in
+                        if(layoutManager().findLastVisibleItemPosition() > messageListAdapter.size() - 5) {
+                            scrollListTo(ListPosition.Bottom, true);
                         }
-                        else {
-                            // If the user is near the bottom, then we scroll down when a message comes in
-                            if(layoutManager().findLastVisibleItemPosition() > messageListAdapter.size() - 5) {
-                                scrollListTo(ListPosition.Bottom, true);
-                            }
-                        }
+                    }
 
                     if(NM.readReceipts() != null) {
                         NM.readReceipts().markRead(thread);
@@ -674,7 +674,7 @@ public class ChatActivity extends BaseActivity implements TextInputDelegate, Cha
     public void startTyping () {
         setChatState(TypingIndicatorHandler.State.composing);
         typingTimerDisposable = Observable.just(true).delay(5000, TimeUnit.MILLISECONDS)
-                .subscribeOn(Schedulers.io())
+                 .subscribeOn(Schedulers.io())
                 .subscribe(aBoolean -> setChatState(TypingIndicatorHandler.State.active));
     }
 

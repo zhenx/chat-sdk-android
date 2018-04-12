@@ -21,6 +21,9 @@ import co.chatsdk.core.session.NM;
 import co.chatsdk.core.utils.StringChecker;
 import co.chatsdk.core.utils.Strings;
 import io.reactivex.Completable;
+import io.reactivex.CompletableEmitter;
+import io.reactivex.CompletableOnSubscribe;
+import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -96,12 +99,7 @@ public class FirebasePushHandler implements PushHandler {
     public void pushToChannels(List<String> channels, Map<String, String> data) {
 
         for(String channel : channels) {
-            pushToChannel(channel, data).doOnError(throwable -> throwable.printStackTrace()).subscribe(() -> {
-
-            }, throwable -> {
-                // Catch the error to stop the app crashing if it fails
-                throwable.printStackTrace();
-            });
+            pushToChannel(channel, data).doOnError(throwable -> throwable.printStackTrace()).subscribe();
         }
     }
 

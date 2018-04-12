@@ -32,17 +32,12 @@ public class AudioPlayer {
             playingDisposable = Observable.interval(0, 200, TimeUnit.MILLISECONDS)
                     .subscribeOn(Schedulers.single())
                     .subscribe(aLong -> {
-                        if(progressListener != null && player != null) {
+                        if (progressListener != null && player != null) {
                             final int pos = player.getCurrentPosition();
 
                             AndroidSchedulers.mainThread().scheduleDirect(() -> progressListener.update(pos));
                         }
-                    }, new Consumer<Throwable>() {
-                        @Override
-                        public void accept(Throwable throwable) throws Exception {
-                            Timber.v(throwable.getMessage());
-                        }
-                    });
+                    }, throwable -> Timber.v(throwable.getMessage()));
 
             player.setOnCompletionListener(completionListener);
         }

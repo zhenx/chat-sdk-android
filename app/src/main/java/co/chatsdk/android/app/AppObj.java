@@ -26,7 +26,7 @@ public class AppObj extends MultiDexApplication {
         builder.defaultUserAvatarUrl("https://firebasestorage.googleapis.com/v0/b/beep-3e40a.appspot.com/o/default%2Ficn_100_car%403x.png?alt=media&token=f71f9b3b-75c4-4c4f-9317-9eaffeaad05b");
 
 //        builder.firebaseRootPath("firebase_v4_web_new_4");
-        builder.firebaseRootPath("18_02");
+        builder.firebaseRootPath("test_11");
 
         ChatSDK.initialize(builder.build());
 

@@ -76,11 +76,11 @@ public class DaoCore {
             throw new NullPointerException("Context is null, Did you initialized DaoCore?");
 
 //        if(ChatSDK.config().debug) {
-            helper = new DaoMaster.DevOpenHelper(context, dbName, null);
+//            helper = new DaoMaster.DevOpenHelper(context, dbName, null);
 //        }
         // TODO: Fix the database migration code
 //        else {
-//            helper = new DatabaseUpgradeHelper(context, dbName);
+            helper = new DatabaseUpgradeHelper(context, dbName);
 //        }
 
         db = helper.getWritableDatabase();

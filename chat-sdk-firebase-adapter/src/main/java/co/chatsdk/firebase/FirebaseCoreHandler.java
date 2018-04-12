@@ -3,7 +3,6 @@ package co.chatsdk.firebase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,18 +22,12 @@ import co.chatsdk.core.types.FileUploadResult;
 import co.chatsdk.core.utils.DisposableList;
 import co.chatsdk.firebase.wrappers.UserWrapper;
 import io.reactivex.Completable;
-import io.reactivex.CompletableEmitter;
-import io.reactivex.CompletableOnSubscribe;
-import io.reactivex.CompletableSource;
 import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
 import io.reactivex.schedulers.Schedulers;
 import timber.log.Timber;
 
@@ -53,11 +46,11 @@ public class FirebaseCoreHandler extends AbstractCoreHandler {
                 .subscribe(networkEvent -> disposableList.dispose());
     }
 
-    /** Unlike the iOS code the current user need to be saved before you call this method.*/
     public Completable pushUser () {
         return Single.create(new SingleOnSubscribe<User>() {
             @Override
-            public void subscribe(@NonNull final SingleEmitter<User> e) throws Exception {
+            public void subscribe(SingleEmitter<User> e) throws Exception {
+
                 // Check to see if the avatar URL is local or remote
                 File avatar = new File(new URI(NM.currentUser().getAvatarURL()).getPath());
                 Bitmap bitmap = BitmapFactory.decodeFile(avatar.getPath());
@@ -84,13 +77,15 @@ public class FirebaseCoreHandler extends AbstractCoreHandler {
                             e.onSuccess(NM.currentUser());
                         }
 
-                    @Override
-                    public void onComplete() {
-                        e.onSuccess(NM.currentUser());
-                    }
-                });
-            } else {
-                e.onSuccess(NM.currentUser());
+                        @Override
+                        public void onComplete() {
+                            e.onSuccess(NM.currentUser());
+                        }
+                    });
+                } else {
+                    e.onSuccess(NM.currentUser());
+                }
+
             }
         }).flatMapCompletable(user -> new UserWrapper(user).push()).subscribeOn(Schedulers.single());
     }

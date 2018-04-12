@@ -130,7 +130,7 @@ public class BaseInterfaceAdapter implements InterfaceAdapter {
 
     @Override
     public Fragment privateThreadsFragment() {
-        return PrivateThreadsFragment.newInstance();
+        return new PrivateThreadsFragment();
     }
 
     @Override
@@ -140,7 +140,7 @@ public class BaseInterfaceAdapter implements InterfaceAdapter {
 
     @Override
     public Fragment contactsFragment() {
-        return ContactsFragment.newInstance();
+        return new ContactsFragment();
     }
 
     @Override

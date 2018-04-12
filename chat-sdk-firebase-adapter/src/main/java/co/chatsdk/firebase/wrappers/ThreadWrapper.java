@@ -8,7 +8,6 @@
 package co.chatsdk.firebase.wrappers;
 
 import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
@@ -40,13 +39,9 @@ import io.reactivex.Completable;
 import io.reactivex.CompletableEmitter;
 import io.reactivex.CompletableOnSubscribe;
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
-import io.reactivex.functions.Action;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 
 public class ThreadWrapper  {
@@ -107,7 +102,9 @@ public class ThreadWrapper  {
             ValueEventListener listener = ref.addValueEventListener(new FirebaseEventListener().onValue((snapshot, hasValue) -> {
                 // We just update the thread. The last message will already have been
                 // set by the message listener
-                e.onNext(model);
+                if (hasValue) {
+                    e.onNext(model);
+                }
             }));
 
             FirebaseReferenceManager.shared().addRef(ref, listener);
@@ -219,11 +216,11 @@ public class ThreadWrapper  {
 //                                    if (newMessage) {
                                         e.onNext(message.getModel());
 //                                    }
-                                    updateReadReceipts();
-                                }
+
                                 updateReadReceipts();
                             }
                         }));
+
                         FirebaseReferenceManager.shared().addRef(ref, listener);
                     });
         }).subscribeOn(Schedulers.single());

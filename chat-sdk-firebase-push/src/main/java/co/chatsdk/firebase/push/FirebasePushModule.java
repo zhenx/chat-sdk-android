@@ -2,6 +2,8 @@ package co.chatsdk.firebase.push;
 
 import co.chatsdk.core.session.NM;
 import co.chatsdk.core.session.NetworkManager;
+import io.reactivex.functions.Action;
+import io.reactivex.functions.Consumer;
 
 /**
  * Created by ben on 9/1/17.

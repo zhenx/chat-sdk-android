@@ -96,28 +96,19 @@ public abstract class AbstractThreadHandler implements ThreadHandler {
      * send method so it can be sent via the network
      */
     public Observable<MessageSendProgress> implSendMessage(final Message message) {
-        return Observable.create(new ObservableOnSubscribe<MessageSendProgress>() {
-            @Override
-            public void subscribe(ObservableEmitter<MessageSendProgress> e) throws Exception {
-                message.update();
-                message.getThread().update();
-                e.onNext(new MessageSendProgress(message));
-                e.onComplete();
-            }
+        return Observable.create((ObservableOnSubscribe<MessageSendProgress>) e -> {
+            message.update();
+            message.getThread().update();
+            e.onNext(new MessageSendProgress(message));
+            e.onComplete();
         }).concatWith(sendMessage(message))
           .subscribeOn(Schedulers.single())
-          .doOnComplete(new Action() {
-            @Override
-            public void run() throws Exception {
-                message.setMessageStatus(MessageSendStatus.Sent);
-                message.update();
-            }
-        }).doOnError(new Consumer<Throwable>() {
-            @Override
-            public void accept(Throwable throwable) throws Exception {
-                message.setMessageStatus(MessageSendStatus.Failed);
-                message.update();
-            }
+          .doOnComplete(() -> {
+              message.setMessageStatus(MessageSendStatus.Sent);
+              message.update();
+          }).doOnError(throwable -> {
+            message.setMessageStatus(MessageSendStatus.Failed);
+            message.update();
         });
     }
 

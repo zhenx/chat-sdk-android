@@ -8,9 +8,7 @@
 package co.chatsdk.ui.threads;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
@@ -23,27 +21,24 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import co.chatsdk.core.dao.Thread;
 import co.chatsdk.core.events.EventType;
 import co.chatsdk.core.events.NetworkEvent;
 import co.chatsdk.core.interfaces.ThreadType;
 import co.chatsdk.core.session.ChatSDK;
 import co.chatsdk.core.session.NM;
-import co.chatsdk.ui.manager.InterfaceManager;
 import co.chatsdk.ui.R;
 import co.chatsdk.ui.main.BaseFragment;
+import co.chatsdk.ui.manager.InterfaceManager;
 import co.chatsdk.ui.utils.ToastHelper;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.functions.BiConsumer;
-import io.reactivex.functions.Consumer;
 
 /**
  * Created by itzik on 6/17/2014.
  */
 public class PublicThreadsFragment extends BaseFragment {
 
-    private RecyclerView listThreads;
-    private ThreadsListAdapter adapter;
+    protected RecyclerView listThreads;
+    protected ThreadsListAdapter adapter;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {

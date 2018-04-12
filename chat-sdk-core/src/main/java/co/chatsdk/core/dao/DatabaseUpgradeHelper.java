@@ -37,12 +37,7 @@ public class DatabaseUpgradeHelper extends DaoMaster.OpenHelper {
         migrations.add(new MigrationV2());
 
         // Sorting just to be safe, in case other people add migrations in the wrong order.
-        Comparator<Migration> migrationComparator = new Comparator<Migration>() {
-            @Override
-            public int compare(Migration m1, Migration m2) {
-                return m1.getVersion().compareTo(m2.getVersion());
-            }
-        };
+        Comparator<Migration> migrationComparator = (m1, m2) -> m1.getVersion().compareTo(m2.getVersion());
         Collections.sort(migrations, migrationComparator);
 
         return migrations;
@@ -59,10 +54,10 @@ public class DatabaseUpgradeHelper extends DaoMaster.OpenHelper {
         public void runMigration(Database db) {
             //Adding new table
             //UserDao.createTable(db, false);
-            db.execSQL("ALTER TABLE " + UserDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.AllRead.columnName + " BOOLEAN");
-            db.execSQL("ALTER TABLE " + UserDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.Position.columnName + " INTEGER");
-            db.execSQL("ALTER TABLE " + UserDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.NextMessageId.columnName + " LONG");
-            db.execSQL("ALTER TABLE " + UserDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.LastMessageId.columnName + " LONG");
+            db.execSQL("ALTER TABLE " + MessageDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.AllRead.columnName + " BOOLEAN");
+            db.execSQL("ALTER TABLE " + MessageDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.Position.columnName + " INTEGER");
+            db.execSQL("ALTER TABLE " + MessageDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.NextMessageId.columnName + " LONG");
+            db.execSQL("ALTER TABLE " + MessageDao.TABLENAME + " ADD COLUMN " + MessageDao.Properties.LastMessageId.columnName + " LONG");
         }
     }
 
