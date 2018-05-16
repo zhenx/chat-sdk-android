@@ -9,6 +9,7 @@ import co.chatsdk.core.session.Configuration;
 import co.chatsdk.firebase.FirebaseModule;
 import co.chatsdk.firebase.file_storage.FirebaseFileStorageModule;
 import co.chatsdk.firebase.push.FirebasePushModule;
+import co.chatsdk.ui.manager.InterfaceManager;
 import co.chatsdk.ui.manager.UserInterfaceModule;
 
 /**
@@ -38,6 +39,7 @@ public class AppObj extends MultiDexApplication {
         FirebaseFileStorageModule.activate();
         FirebasePushModule.activateForFirebase();
 
+        InterfaceManager.shared().a = new CustomInterfaceAdapter(context);
 
     }
 
