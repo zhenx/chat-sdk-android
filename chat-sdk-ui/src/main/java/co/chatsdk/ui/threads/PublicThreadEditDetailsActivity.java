@@ -48,49 +48,62 @@ public class PublicThreadEditDetailsActivity extends BaseActivity {
 
     protected DisposableList disposableList = new DisposableList();
 
+    protected String threadEntityID;
+    protected Thread thread;
+    protected EditText nameInput;
+    protected Button saveButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        threadEntityID = getIntent().getStringExtra(BaseInterfaceAdapter.THREAD_ENTITY_ID);
+        if (threadEntityID != null)
+            thread = StorageManager.shared().fetchThreadWithEntityID(threadEntityID);
+
         setContentView(R.layout.chat_sdk_activity_edit_public_thread_details);
+        initViews();
+    }
 
-        String threadEntityID = getIntent().getStringExtra(BaseInterfaceAdapter.THREAD_ENTITY_ID);
-        Thread thread = StorageManager.shared().fetchThreadWithEntityID(threadEntityID);
-
-        EditText nameInput = findViewById(R.id.chat_sdk_edit_thread_name_et);
-        Button updateButton = findViewById(R.id.chat_sdk_edit_thread_update_b);
+    protected void initViews() {
+        nameInput = findViewById(R.id.chat_sdk_edit_thread_name_et);
+        saveButton = findViewById(R.id.chat_sdk_edit_thread_update_b);
 
         if (thread != null) {
             nameInput.setText(thread.getName());
-            updateButton.setText(R.string.update_public_thread);
+            saveButton.setText(R.string.update_public_thread);
         }
 
-        updateButton.setOnClickListener(v -> {
-            final String threadName = nameInput.getText().toString();
-            if (thread == null) {
-                showOrUpdateProgressDialog(getString(R.string.add_public_chat_dialog_progress_message));
-
-                NM.publicThread().createPublicThreadWithName(threadName)
-                        .observeOn(AndroidSchedulers.mainThread())
-                        .subscribe((_thread, throwable) -> {
-                            if (throwable == null) {
-                                dismissProgressDialog();
-                                ToastHelper.show(ChatSDK.shared().context(), String.format(getString(R.string.public_thread__is_created), threadName));
-
-                                InterfaceManager.shared().a.startChatActivityForID(ChatSDK.shared().context(), _thread.getEntityID());
-                            } else {
-                                ChatSDK.logError(throwable);
-                                Toast.makeText(ChatSDK.shared().context(), throwable.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
-                                dismissProgressDialog();
-                            }
-                        });
-            } else {
-                thread.setName(threadName);
-                thread.update();
-                NM.publicThread().createPublicThreadWithName(threadName, threadEntityID);
-                finish();
-            }
+        saveButton.setOnClickListener(v -> {
+            setSaveButtonOnClickListener();
         });
+    }
+
+    protected void setSaveButtonOnClickListener() {
+        final String threadName = nameInput.getText().toString();
+        if (thread == null) {
+            showOrUpdateProgressDialog(getString(R.string.add_public_chat_dialog_progress_message));
+
+            disposableList.add(NM.publicThread().createPublicThreadWithName(threadName)
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe((_thread, throwable) -> {
+                        if (throwable == null) {
+                            dismissProgressDialog();
+                            ToastHelper.show(ChatSDK.shared().context(), String.format(getString(R.string.public_thread__is_created), threadName));
+
+                            InterfaceManager.shared().a.startChatActivityForID(ChatSDK.shared().context(), _thread.getEntityID());
+                        } else {
+                            ChatSDK.logError(throwable);
+                            Toast.makeText(ChatSDK.shared().context(), throwable.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                            dismissProgressDialog();
+                        }
+                    }));
+        } else {
+            thread.setName(threadName);
+            thread.update();
+            NM.publicThread().createPublicThreadWithName(threadName, threadEntityID);
+            finish();
+        }
     }
 
     @Override

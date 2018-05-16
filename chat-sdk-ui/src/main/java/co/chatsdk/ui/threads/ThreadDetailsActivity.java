@@ -78,19 +78,11 @@ public class ThreadDetailsActivity extends BaseActivity {
         loadData();
     }
 
-    private void initViews() {
+    protected void initViews() {
 
         actionBar = getSupportActionBar();
         actionBar.setTitle(Strings.nameForThread(thread));
         actionBar.setHomeButtonEnabled(true);
-
-        final View actionBarView = getLayoutInflater().inflate(R.layout.chat_sdk_activity_thread_details, null);
-
-        // Allow the thread name to be modified by a long click
-        actionBarView.setOnLongClickListener(v -> {
-            // TODO: Implement this
-            return true;
-        });
 
         threadImageView = findViewById(R.id.chat_sdk_thread_image_view);
     }
