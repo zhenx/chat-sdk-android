@@ -99,9 +99,11 @@ public class PublicThreadEditDetailsActivity extends BaseActivity {
                         }
                     }));
         } else {
+//            TODO: add thread name to meta data
+//            thread.setMetaValue("name", threadName);
+//            disposableList.add(new ThreadWrapper(thread).pushMeta().subscribe(this::finish));
             thread.setName(threadName);
             thread.update();
-            NM.publicThread().createPublicThreadWithName(threadName, threadEntityID);
             finish();
         }
     }

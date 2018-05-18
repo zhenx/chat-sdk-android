@@ -327,8 +327,16 @@ public class User implements CoreEntity, UserListItem {
         setMetaString(Keys.Location, location);
     }
 
+    public Object metaValueForKey(String key) {
+        return metaMap().get(key);
+    }
+
     public String metaStringForKey(String key) {
-        return (String) metaMap().get(key);
+        return (String) metaValueForKey(key);
+    }
+
+    public Boolean metaBooleanForKey(String key) {
+        return (Boolean) (metaValueForKey(key) != null ? metaValueForKey(key) : false);
     }
 
     public void setMetaString(String key, String value){

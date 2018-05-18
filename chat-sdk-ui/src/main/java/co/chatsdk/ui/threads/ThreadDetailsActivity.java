@@ -50,6 +50,7 @@ public class ThreadDetailsActivity extends BaseActivity {
     protected DisposableList disposableList = new DisposableList();
 
     protected ActionBar actionBar;
+    protected MenuItem settingsItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -173,9 +174,9 @@ public class ThreadDetailsActivity extends BaseActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuItem item = menu.add(Menu.NONE, R.id.action_chat_sdk_settings, 12, getString(R.string.action_settings));
-        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
-        item.setIcon(R.drawable.icn_24_settings);
+        settingsItem = menu.add(Menu.NONE, R.id.action_chat_sdk_settings, 12, getString(R.string.action_settings));
+        settingsItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);
+        settingsItem.setIcon(R.drawable.icn_24_settings);
 
         return super.onCreateOptionsMenu(menu);
     }
