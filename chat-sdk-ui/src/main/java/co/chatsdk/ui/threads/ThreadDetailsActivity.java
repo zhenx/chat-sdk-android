@@ -15,12 +15,15 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.TextView;
 
 import com.facebook.drawee.view.SimpleDraweeView;
 
 import org.apache.commons.lang3.StringUtils;
 
 import co.chatsdk.core.dao.Thread;
+import co.chatsdk.core.dao.ThreadMetaValue;
+import co.chatsdk.core.events.EventType;
 import co.chatsdk.core.events.NetworkEvent;
 import co.chatsdk.core.session.ChatSDK;
 import co.chatsdk.core.session.NM;
@@ -80,12 +83,24 @@ public class ThreadDetailsActivity extends BaseActivity {
     }
 
     protected void initViews() {
-
         actionBar = getSupportActionBar();
         actionBar.setTitle(Strings.nameForThread(thread));
         actionBar.setHomeButtonEnabled(true);
 
         threadImageView = findViewById(R.id.chat_sdk_thread_image_view);
+
+        updateMetaData();
+
+        disposableList.add(NM.events().sourceOnMain()
+                .filter(NetworkEvent.filterType(EventType.ThreadMetaUpdated))
+                .subscribe(networkEvent -> updateMetaData()));
+    }
+
+    protected void updateMetaData() {
+        // TODO: permanently move thread name into meta data
+        ThreadMetaValue nameMetaValue = thread.metaValueForKey("name");
+        if (nameMetaValue != null)
+            actionBar.setTitle(nameMetaValue.getValue());
     }
 
     protected void loadData () {

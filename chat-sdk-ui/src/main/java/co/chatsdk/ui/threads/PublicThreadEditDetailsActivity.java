@@ -22,12 +22,14 @@ import com.facebook.drawee.view.SimpleDraweeView;
 import org.apache.commons.lang3.StringUtils;
 
 import co.chatsdk.core.dao.Thread;
+import co.chatsdk.core.dao.ThreadMetaValue;
 import co.chatsdk.core.events.NetworkEvent;
 import co.chatsdk.core.session.ChatSDK;
 import co.chatsdk.core.session.NM;
 import co.chatsdk.core.session.StorageManager;
 import co.chatsdk.core.utils.DisposableList;
 import co.chatsdk.core.utils.Strings;
+import co.chatsdk.firebase.wrappers.ThreadWrapper;
 import co.chatsdk.ui.R;
 import co.chatsdk.ui.chat.ChatActivity;
 import co.chatsdk.ui.contacts.ContactsFragment;
@@ -72,6 +74,11 @@ public class PublicThreadEditDetailsActivity extends BaseActivity {
         if (thread != null) {
             nameInput.setText(thread.getName());
             saveButton.setText(R.string.update_public_thread);
+
+            // TODO: permanently move thread name into meta data
+            ThreadMetaValue nameMetaValue = thread.metaValueForKey("name");
+            if (nameMetaValue != null)
+                nameInput.setText(nameMetaValue.getValue());
         }
 
         saveButton.setOnClickListener(v -> {
@@ -88,10 +95,14 @@ public class PublicThreadEditDetailsActivity extends BaseActivity {
                     .observeOn(AndroidSchedulers.mainThread())
                     .subscribe((_thread, throwable) -> {
                         if (throwable == null) {
-                            dismissProgressDialog();
-                            ToastHelper.show(ChatSDK.shared().context(), String.format(getString(R.string.public_thread__is_created), threadName));
+                            // TODO: permanently move thread name into meta data
+                            thread.setMetaValue("name", threadName);
+                            disposableList.add(new ThreadWrapper(thread).pushMeta().subscribe(() -> {
+                                dismissProgressDialog();
+                                ToastHelper.show(ChatSDK.shared().context(), String.format(getString(co.chatsdk.ui.R.string.public_thread__is_created), threadName));
 
-                            InterfaceManager.shared().a.startChatActivityForID(ChatSDK.shared().context(), _thread.getEntityID());
+                                InterfaceManager.shared().a.startChatActivityForID(ChatSDK.shared().context(), _thread.getEntityID());
+                            }));
                         } else {
                             ChatSDK.logError(throwable);
                             Toast.makeText(ChatSDK.shared().context(), throwable.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
@@ -99,12 +110,11 @@ public class PublicThreadEditDetailsActivity extends BaseActivity {
                         }
                     }));
         } else {
-//            TODO: add thread name to meta data
-//            thread.setMetaValue("name", threadName);
-//            disposableList.add(new ThreadWrapper(thread).pushMeta().subscribe(this::finish));
+            // TODO: permanently move thread name into meta data
             thread.setName(threadName);
             thread.update();
-            finish();
+            thread.setMetaValue("name", threadName);
+            disposableList.add(new ThreadWrapper(thread).pushMeta().subscribe(this::finish));
         }
     }
 
