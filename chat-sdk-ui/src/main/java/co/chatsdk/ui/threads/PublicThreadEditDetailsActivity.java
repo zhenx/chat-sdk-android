@@ -7,33 +7,21 @@
 
 package co.chatsdk.ui.threads;
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.facebook.drawee.view.SimpleDraweeView;
-
-import org.apache.commons.lang3.StringUtils;
-
 import co.chatsdk.core.dao.Thread;
 import co.chatsdk.core.dao.ThreadMetaValue;
-import co.chatsdk.core.events.NetworkEvent;
 import co.chatsdk.core.session.ChatSDK;
 import co.chatsdk.core.session.NM;
 import co.chatsdk.core.session.StorageManager;
 import co.chatsdk.core.utils.DisposableList;
-import co.chatsdk.core.utils.Strings;
 import co.chatsdk.firebase.wrappers.ThreadWrapper;
 import co.chatsdk.ui.R;
-import co.chatsdk.ui.chat.ChatActivity;
-import co.chatsdk.ui.contacts.ContactsFragment;
-import co.chatsdk.ui.helpers.ProfilePictureChooserOnClickListener;
 import co.chatsdk.ui.main.BaseActivity;
 import co.chatsdk.ui.manager.BaseInterfaceAdapter;
 import co.chatsdk.ui.manager.InterfaceManager;
@@ -60,8 +48,9 @@ public class PublicThreadEditDetailsActivity extends BaseActivity {
         super.onCreate(savedInstanceState);
 
         threadEntityID = getIntent().getStringExtra(BaseInterfaceAdapter.THREAD_ENTITY_ID);
-        if (threadEntityID != null)
+        if (threadEntityID != null) {
             thread = StorageManager.shared().fetchThreadWithEntityID(threadEntityID);
+        }
 
         setContentView(R.layout.chat_sdk_activity_edit_public_thread_details);
         initViews();
@@ -114,6 +103,7 @@ public class PublicThreadEditDetailsActivity extends BaseActivity {
             thread.setName(threadName);
             thread.update();
             thread.setMetaValue("name", threadName);
+            // TODO: Update the thread name
             disposableList.add(new ThreadWrapper(thread).pushMeta().subscribe(this::finish));
         }
     }
